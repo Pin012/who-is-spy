@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 
 export const generateWordPair = async () => {
@@ -6,7 +7,7 @@ export const generateWordPair = async () => {
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: "請產生一組適合『誰是臥底』遊戲的詞語對。這兩個詞必須非常相似但不同。回傳格式為 JSON，包含 civilianWord (平民詞) 和 undercoverWord (臥底詞)。例如：珍珠奶茶與波霸奶茶、鋼琴與電子琴。",
+      contents: "請產生一組適合『誰是臥底』遊戲的詞語對。這兩個詞必須非常相似但不同。直接回傳 JSON 物件，不要包含 markdown 標籤，包含 civilianWord (平民詞) 和 undercoverWord (臥底詞)。",
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -22,7 +23,10 @@ export const generateWordPair = async () => {
 
     const text = response.text;
     if (!text) throw new Error("AI 回傳內容為空");
-    return JSON.parse(text.trim());
+    
+    // 清理可能的 markdown 標籤
+    const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(jsonStr);
   } catch (error) {
     console.error("Gemini 產生失敗，使用備用詞庫", error);
     const fallbacks = [

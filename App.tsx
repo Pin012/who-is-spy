@@ -1,16 +1,20 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import { Game, Player, GameStatus, PlayerRole } from './types';
 import HomeView from './views/HomeView';
 import LobbyView from './views/LobbyView';
 import GameView from './views/GameView';
+import ModeSelectionView from './views/ModeSelectionView';
 
 const App: React.FC = () => {
   const [currentGame, setCurrentGame] = useState<Game | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // UI States
+  const [isSelectingMode, setIsSelectingMode] = useState(false);
+  const [playerName, setPlayerName] = useState('');
 
   // 檢查所有必要的金鑰是否存在
   const missingKeys = [];
@@ -89,7 +93,7 @@ const App: React.FC = () => {
     };
   }, [currentGame?.id, currentPlayer?.id]);
 
-  const handleJoinGame = async (gameId: string, playerName: string, isHost: boolean = false) => {
+  const handleJoinGame = async (gameId: string, nameToUse: string, isHost: boolean = false) => {
     if (!supabase) return;
     setLoading(true);
     try {
@@ -105,7 +109,7 @@ const App: React.FC = () => {
         .from('players')
         .insert({
           game_id: gameId,
-          name: playerName,
+          name: nameToUse,
           is_host: isHost,
           is_alive: true,
           role: PlayerRole.UNKNOWN
@@ -124,7 +128,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleCreateGame = async (playerName: string, hostIsPlayer: boolean) => {
+  const handleCreateGame = async (hostIsPlayer: boolean) => {
     if (!supabase) return;
     setLoading(true);
     try {
@@ -145,6 +149,7 @@ const App: React.FC = () => {
       alert("建立遊戲失敗，請檢查資料庫連線");
     } finally {
       setLoading(false);
+      setIsSelectingMode(false);
     }
   };
 
@@ -158,19 +163,42 @@ const App: React.FC = () => {
     return data?.id;
   };
 
-  return (
-    <div className="min-h-screen bg-[#0f1115] flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl relative">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-red-900/10 blur-[100px] rounded-full"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/10 blur-[100px] rounded-full"></div>
+  const renderContent = () => {
+    if (currentGame) {
+      if (currentGame.status === GameStatus.LOBBY) {
+        return <LobbyView game={currentGame} players={players} currentPlayer={currentPlayer!} onStartGame={() => {}} />;
+      }
+      return <GameView game={currentGame} players={players} currentPlayer={currentPlayer!} />;
+    }
 
-        {!currentGame ? (
-          <HomeView onCreate={handleCreateGame} onJoin={handleJoinGame} findGame={findGameByCode} loading={loading} />
-        ) : currentGame.status === GameStatus.LOBBY ? (
-          <LobbyView game={currentGame} players={players} currentPlayer={currentPlayer!} onStartGame={() => {}} />
-        ) : (
-          <GameView game={currentGame} players={players} currentPlayer={currentPlayer!} />
-        )}
+    if (isSelectingMode) {
+      return <ModeSelectionView onSelect={handleCreateGame} onBack={() => setIsSelectingMode(false)} />;
+    }
+
+    return (
+      <HomeView 
+        onCreateClick={() => setIsSelectingMode(true)} 
+        onJoin={handleJoinGame} 
+        findGame={findGameByCode} 
+        loading={loading}
+        playerName={playerName}
+        setPlayerName={setPlayerName}
+      />
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4 selection:bg-red-600/30">
+      <div className="w-full relative py-12">
+        {/* Background Atmosphere */}
+        <div className="fixed top-0 left-0 w-full h-full pointer-events-none opacity-40">
+           <div className="absolute top-[10%] left-[5%] w-[40rem] h-[40rem] bg-red-600/5 blur-[120px] rounded-full animate-pulse"></div>
+           <div className="absolute bottom-[10%] right-[5%] w-[35rem] h-[35rem] bg-blue-600/5 blur-[120px] rounded-full animate-pulse [animation-delay:2s]"></div>
+        </div>
+
+        <div className="relative z-10">
+          {renderContent()}
+        </div>
       </div>
     </div>
   );
