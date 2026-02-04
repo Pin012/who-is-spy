@@ -23,7 +23,7 @@ const ModeSelectionView: React.FC<ModeSelectionViewProps> = ({ onSelect, onBack 
           <div className="relative space-y-6">
             <div className="w-16 h-16 bg-red-600 rounded-lg flex items-center justify-center text-3xl shadow-lg shadow-red-900/40">👤</div>
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-white tracking-tight">Agent Mode (潛伏對決)</h3>
+              <h3 className="text-2xl font-black text-white tracking-tight">Agent Mode 潛伏對決</h3>
               <p className="text-gray-400 text-sm leading-relaxed">
                 房主將作為一名玩家參與遊戲。系統會透過 <span className="text-red-500 font-bold">Gemini AI</span> 自動生成詞彙。
               </p>
@@ -44,7 +44,7 @@ const ModeSelectionView: React.FC<ModeSelectionViewProps> = ({ onSelect, onBack 
           <div className="relative space-y-6">
             <div className="w-16 h-16 bg-amber-600 rounded-lg flex items-center justify-center text-3xl shadow-lg shadow-amber-900/40">👁️</div>
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-white tracking-tight">Observer Mode (上帝視角)</h3>
+              <h3 className="text-2xl font-black text-white tracking-tight">Observer Mode 上帝視角</h3>
               <p className="text-gray-400 text-sm leading-relaxed">
                 房主僅作為主持人觀戰，不參與遊戲。房主需在準備階段<span className="text-amber-500 font-bold">手動輸入</span>詞彙。
               </p>
