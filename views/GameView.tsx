@@ -22,7 +22,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
     if (!currentPlayer.is_alive || game.status !== GameStatus.VOTING || !supabase || voting) return;
     setVoting(true);
     try {
-      await supabase.from('players').update({ voted_for: targetId }).eq('id', currentPlayer.id);
+      await supabase!.from('players').update({ voted_for: targetId }).eq('id', currentPlayer.id);
     } finally {
       setVoting(false);
     }
@@ -50,26 +50,24 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
       });
 
       if (eliminatedId) {
-        await supabase.from('players').update({ is_alive: false }).eq('id', eliminatedId);
+        await supabase!.from('players').update({ is_alive: false }).eq('id', eliminatedId);
       }
       
-      // Reset votes using a batch approach or sequential
-      await supabase.from('players').update({ voted_for: null }).eq('game_id', game.id);
+      await supabase!.from('players').update({ voted_for: null }).eq('game_id', game.id);
     }
 
-    await supabase.from('games').update({ status: nextStatus }).eq('id', game.id);
+    await supabase!.from('games').update({ status: nextStatus }).eq('id', game.id);
   };
 
   const resetGame = async () => {
     if (!supabase || !currentPlayer.is_host) return;
-    // 重置所有玩家狀態
-    await supabase.from('players').update({ 
+    await supabase!.from('players').update({ 
       is_alive: true, 
       role: PlayerRole.UNKNOWN, 
       voted_for: null 
     }).eq('game_id', game.id);
     
-    await supabase.from('games').update({ 
+    await supabase!.from('games').update({ 
       status: GameStatus.LOBBY,
       civilian_word: null,
       undercover_word: null,
@@ -80,7 +78,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
   const alivePlayers = players.filter(p => p.is_alive);
   const undercoversAlive = alivePlayers.filter(p => p.role === PlayerRole.UNDERCOVER).length;
 
-  // Game End Logic
   const isUndercoverWin = alivePlayers.length <= 2 && undercoversAlive > 0;
   const isCivilianWin = undercoversAlive === 0;
   const isGameOver = isUndercoverWin || isCivilianWin;
@@ -195,7 +192,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
               onClick={() => setRevealed(!revealed)}
               className={`aspect-[3/4] w-full max-w-[200px] mx-auto rounded-2xl cursor-pointer transition-all duration-700 relative preserve-3d ${revealed ? '[transform:rotateY(180deg)]' : ''}`}
             >
-              {/* Back of card */}
               <div className="absolute inset-0 bg-gradient-to-br from-[#1e2229] to-[#0f1115] rounded-2xl flex flex-col items-center justify-center border-2 border-white/5 shadow-2xl backface-hidden">
                 <div className="w-12 h-12 bg-red-600/20 rounded-full flex items-center justify-center mb-4">
                   <span className="text-2xl">🔍</span>
@@ -203,7 +199,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
                 <span className="text-[10px] font-bold text-white/40 tracking-[0.2em] uppercase">點擊翻牌</span>
               </div>
               
-              {/* Front of card */}
               <div className="absolute inset-0 bg-white rounded-2xl [transform:rotateY(180deg)] backface-hidden flex flex-col items-center justify-center p-6 space-y-4 shadow-2xl overflow-hidden">
                 <div className={`absolute top-0 left-0 w-full h-2 ${currentPlayer.role === PlayerRole.UNDERCOVER ? 'bg-red-500' : 'bg-cyan-500'}`}></div>
                 <span className={`text-[10px] font-black tracking-[0.3em] ${currentPlayer.role === PlayerRole.UNDERCOVER ? 'text-red-600' : 'text-cyan-600'}`}>

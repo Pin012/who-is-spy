@@ -1,7 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 export const generateWordPair = async () => {
-  // 確保從環境變數正確讀取 API_KEY
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
   
   try {
@@ -21,7 +20,9 @@ export const generateWordPair = async () => {
       }
     });
 
-    return JSON.parse(response.text.trim());
+    const text = response.text;
+    if (!text) throw new Error("AI 回傳內容為空");
+    return JSON.parse(text.trim());
   } catch (error) {
     console.error("Gemini 產生失敗，使用備用詞庫", error);
     const fallbacks = [

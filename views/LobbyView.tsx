@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Game, Player, GameStatus, PlayerRole } from '../types';
 import { supabase } from '../supabaseClient';
@@ -32,11 +31,11 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer }) =
 
       // Update players
       for (const update of updates) {
-        await supabase.from('players').update(update).eq('id', update.id);
+        await supabase!.from('players').update(update).eq('id', update.id);
       }
 
       // Update game
-      await supabase.from('games').update({
+      await supabase!.from('games').update({
         status: GameStatus.PLAYING,
         civilian_word: civilianWord,
         undercover_word: undercoverWord
