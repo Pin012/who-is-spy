@@ -1,7 +1,4 @@
-
 # 🕵️‍♂️ Hidden Agenda - 誰是臥底 | 部署與維護手冊
-
-這是一個專為遠端玩家設計的多人即時對戰遊戲。
 
 ## 🚀 1. 部署到 Vercel (環境變數設定)
 
@@ -41,6 +38,7 @@ CREATE TABLE IF NOT EXISTS players (
   is_host BOOLEAN DEFAULT false,
   is_alive BOOLEAN DEFAULT true,
   voted_for TEXT,
+  message TEXT, -- 新增：玩家描述
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
@@ -50,11 +48,3 @@ CREATE TABLE IF NOT EXISTS players (
 2. 點擊 **Replication**。
 3. 在 `supabase_realtime` 項目中點擊 `0 tables` (或已有的數字)。
 4. 將 `games` 和 `players` 的開關都切換為 **ON**。
-
----
-
-## 🔄 如何同步更新到 GitHub？
-
-1. 在 GitHub 頁面按 `.` 進入編輯器。
-2. 將此對話框產生的 XML 內容對應貼入檔案。
-3. Commit & Push，Vercel 會自動更新。

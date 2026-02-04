@@ -1,4 +1,3 @@
-
 export enum GameStatus {
   LOBBY = 'lobby',
   PLAYING = 'playing',
@@ -20,6 +19,7 @@ export interface Player {
   is_host: boolean;
   is_alive: boolean;
   voted_for: string | null;
+  message: string | null; // 新增：玩家本輪的描述內容
   created_at: string;
 }
 
@@ -30,6 +30,6 @@ export interface Game {
   civilian_word: string | null;
   undercover_word: string | null;
   winner_team: 'civilian' | 'undercover' | null;
-  host_is_player: boolean; // 新增：主持人是否參與遊戲
+  host_is_player: boolean;
   created_at: string;
 }
