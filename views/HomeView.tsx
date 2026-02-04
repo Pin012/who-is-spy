@@ -27,7 +27,7 @@ const HomeView: React.FC<HomeViewProps> = ({ onCreateClick, onJoin, findGame, lo
     <div className="grid md:grid-cols-2 gap-12 items-center max-w-5xl mx-auto px-4">
       {/* Left Column: Entry Form */}
       <div className="glass p-8 md:p-12 rounded-[3rem] shadow-2xl space-y-12 animate-in fade-in slide-in-from-left duration-700 relative overflow-hidden border border-white/10">
-        {/* Background Watermark - Adjusted for better readability */}
+        {/* Background Watermark */}
         <div className="absolute -top-4 -right-4 p-6 opacity-[0.03] select-none pointer-events-none rotate-12">
           <div className="text-[10rem] font-black italic leading-none">TOP<br/>SECRET</div>
         </div>
@@ -94,20 +94,30 @@ const HomeView: React.FC<HomeViewProps> = ({ onCreateClick, onJoin, findGame, lo
         </div>
       </div>
 
-      {/* Right Column: Game Instructions */}
+      {/* Right Column: Game Instructions - Redesigned to be more meaningful */}
       <div className="space-y-10 animate-in fade-in slide-in-from-right duration-700 delay-200">
         <div className="space-y-6">
-          <h2 className="text-3xl font-black flex items-center gap-4 text-white">
-            <span className="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center text-sm italic">01</span>
-            遊戲規則說明
-          </h2>
+          <div className="space-y-1">
+             <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
+                <span className="text-[10px] font-black text-red-600 uppercase tracking-[0.3em]">Directive Active</span>
+             </div>
+             <h2 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
+                遊戲規則說明
+                <div className="flex-1 h-[2px] bg-gradient-to-r from-red-600/50 to-transparent"></div>
+             </h2>
+          </div>
+
           <div className="grid gap-5">
             {[
-              { title: "⚔️ 身份對決", desc: "玩家將被隨機分為「平民」與「臥底」。平民會拿到相同的詞彙，而臥底會拿到一個非常接近但不同的詞彙。" },
-              { title: "💬 描述討論", desc: "每個人輪流用一句話描述自己的詞彙。描述不能太露骨（會被臥底猜到），也不能太模糊（會被當成臥底）。" },
-              { title: "🗳️ 投票淘汰", desc: "所有玩家描述完後，進行投票抓出臥底。如果臥底全被投出，平民獲勝；若平民人數少於 3 人且仍有臥底，臥底獲勝。" }
+              { id: "PROTOCOL_01", title: "⚔️ 身份對決", desc: "玩家將被隨機分為「平民」與「臥底」。平民會拿到相同的詞彙，而臥底會拿到一個非常接近但不同的詞彙。" },
+              { id: "PROTOCOL_02", title: "💬 描述討論", desc: "每個人輪流用一句話描述自己的詞彙。描述不能太露骨（會被臥底猜到），也不能太模糊（會被當成臥底）。" },
+              { id: "PROTOCOL_03", title: "🗳️ 投票淘汰", desc: "所有玩家描述完後，進行投票抓出臥底。如果臥底全被投出，平民獲勝；若平民人數少於 3 人且仍有臥底，臥底獲勝。" }
             ].map((rule, idx) => (
-              <div key={idx} className="bg-white/5 p-6 rounded-3xl border border-white/5 space-y-2 group hover:bg-white/10 transition-colors">
+              <div key={idx} className="bg-white/5 p-6 rounded-3xl border border-white/5 space-y-2 group hover:bg-white/10 transition-colors relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                   <span className="text-[8px] font-black font-mono text-white tracking-widest">{rule.id}</span>
+                </div>
                 <h3 className="text-white font-bold flex items-center gap-2 group-hover:text-red-500 transition-colors">{rule.title}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">{rule.desc}</p>
               </div>
@@ -115,7 +125,7 @@ const HomeView: React.FC<HomeViewProps> = ({ onCreateClick, onJoin, findGame, lo
           </div>
         </div>
         
-        <div className="p-8 rounded-3xl bg-gradient-to-br from-red-900/10 to-transparent border border-red-900/20 relative overflow-hidden group">
+        <div className="p-8 rounded-3xl bg-gradient-to-br from-red-900/10 to-transparent border border-red-900/20 relative overflow-hidden group shadow-xl">
           <div className="absolute top-0 left-0 w-1 h-full bg-red-600 transition-all group-hover:w-full group-hover:opacity-5"></div>
           <p className="text-[10px] text-red-500 font-black leading-relaxed uppercase tracking-[0.2em] relative z-10">
             SYSTEM CORE: GEMINI AI POWERED WORD GENERATION.<br/>
