@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import { Game, Player, GameStatus, PlayerRole } from './types';
@@ -123,7 +124,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleCreateGame = async (playerName: string) => {
+  const handleCreateGame = async (playerName: string, hostIsPlayer: boolean) => {
     if (!supabase) return;
     setLoading(true);
     try {
@@ -132,7 +133,8 @@ const App: React.FC = () => {
         .from('games')
         .insert({
           room_code: roomCode,
-          status: GameStatus.LOBBY
+          status: GameStatus.LOBBY,
+          host_is_player: hostIsPlayer
         })
         .select()
         .single();

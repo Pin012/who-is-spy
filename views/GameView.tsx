@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Game, Player, GameStatus, PlayerRole } from '../types';
 import { supabase } from '../supabaseClient';
 
@@ -12,10 +13,18 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
   const [revealed, setRevealed] = useState(false);
   const [voting, setVoting] = useState(false);
 
+  // Auto-flip effect: Automatically show the card when the game starts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setRevealed(true);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const getMyWord = () => {
     if (currentPlayer.role === PlayerRole.CIVILIAN) return game.civilian_word;
     if (currentPlayer.role === PlayerRole.UNDERCOVER) return game.undercover_word;
-    return "未知";
+    return "N/A";
   };
 
   const handleVote = async (targetId: string) => {
@@ -75,44 +84,46 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
     }).eq('id', game.id);
   };
 
-  const alivePlayers = players.filter(p => p.is_alive);
+  const alivePlayers = players.filter(p => p.is_alive && (game.host_is_player || !p.is_host));
   const undercoversAlive = alivePlayers.filter(p => p.role === PlayerRole.UNDERCOVER).length;
 
   const isUndercoverWin = alivePlayers.length <= 2 && undercoversAlive > 0;
   const isCivilianWin = undercoversAlive === 0;
   const isGameOver = isUndercoverWin || isCivilianWin;
 
+  const isSpectator = !game.host_is_player && currentPlayer.is_host;
+
   if (isGameOver) {
     return (
-      <div className="glass p-12 rounded-3xl text-center space-y-8 animate-in fade-in zoom-in duration-500 max-w-2xl mx-auto">
+      <div className="glass p-12 rounded-3xl text-center space-y-8 animate-in fade-in zoom-in duration-500 max-w-2xl mx-auto border-white/5">
         <div className="space-y-4">
-          <div className="inline-block p-4 bg-white/5 rounded-full mb-4">
-            <span className="text-6xl">{isCivilianWin ? '🛡️' : '🗡️'}</span>
+          <div className="inline-block p-4 bg-white/5 rounded-full mb-4 border border-white/10">
+            <span className="text-6xl">{isCivilianWin ? '👮' : '🕵️'}</span>
           </div>
-          <h2 className={`text-6xl font-black tracking-tighter ${isCivilianWin ? 'text-cyan-400' : 'text-red-500'}`}>
-            {isCivilianWin ? '平民勝利' : '臥底勝利'}
+          <h2 className={`text-6xl font-black tracking-tighter uppercase ${isCivilianWin ? 'text-cyan-400' : 'text-red-500'}`}>
+            {isCivilianWin ? 'Civilians Win' : 'Undercover Win'}
           </h2>
-          <p className="text-gray-400 text-xl font-medium">正義雖然會遲到，但絕不會缺席...嗎？</p>
+          <p className="text-gray-500 text-sm font-bold tracking-[0.5em] uppercase">Mission Terminated</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-black/40 p-6 rounded-2xl border border-white/5">
-            <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">平民詞</p>
-            <p className="text-2xl font-bold text-white">{game.civilian_word}</p>
+          <div className="bg-black/60 p-6 rounded-2xl border border-white/5">
+            <p className="text-[10px] text-gray-600 font-black uppercase tracking-widest mb-2">Civilian Word</p>
+            <p className="text-2xl font-black text-white">{game.civilian_word}</p>
           </div>
-          <div className="bg-black/40 p-6 rounded-2xl border border-white/5">
-            <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">臥底詞</p>
-            <p className="text-2xl font-bold text-white">{game.undercover_word}</p>
+          <div className="bg-black/60 p-6 rounded-2xl border border-white/5">
+            <p className="text-[10px] text-gray-600 font-black uppercase tracking-widest mb-2">Undercover Word</p>
+            <p className="text-2xl font-black text-white">{game.undercover_word}</p>
           </div>
         </div>
 
-        <div className="space-y-4 pt-6">
-          <h3 className="text-sm font-bold text-gray-500 uppercase tracking-[0.3em]">身份全揭曉</h3>
+        <div className="space-y-4 pt-6 text-left">
+          <h3 className="text-center text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">Agent Roles Uncovered</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {players.map(p => (
-              <div key={p.id} className={`p-3 rounded-xl border text-sm font-bold ${p.role === PlayerRole.UNDERCOVER ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'}`}>
-                {p.name}
-                <div className="text-[10px] opacity-60 font-normal">{p.role === PlayerRole.UNDERCOVER ? '臥底' : '平民'}</div>
+            {players.filter(p => game.host_is_player || !p.is_host).map(p => (
+              <div key={p.id} className={`p-4 rounded-xl border-2 transition-all ${p.role === PlayerRole.UNDERCOVER ? 'border-red-500/30 bg-red-500/5 text-red-500' : 'border-cyan-500/30 bg-cyan-500/5 text-cyan-500'}`}>
+                <div className="text-xs font-black uppercase mb-1">{p.role === PlayerRole.UNDERCOVER ? 'Undercover' : 'Civilian'}</div>
+                <div className="text-lg font-bold truncate text-white">{p.name}</div>
               </div>
             ))}
           </div>
@@ -121,9 +132,9 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
         {currentPlayer.is_host && (
           <button 
             onClick={resetGame}
-            className="w-full bg-white text-black hover:bg-gray-200 py-4 rounded-2xl font-bold transition-all shadow-xl hover:scale-[1.02] active:scale-95"
+            className="w-full bg-white text-black hover:bg-gray-200 py-5 rounded-2xl font-black transition-all shadow-2xl uppercase tracking-widest mt-8"
           >
-            返回大廳重新開局
+            Re-Deploy Mission
           </button>
         )}
       </div>
@@ -131,94 +142,138 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white/5 p-6 rounded-3xl border border-white/10">
-        <div className="flex items-center gap-4">
-          <div className={`px-4 py-2 rounded-xl font-bold shadow-lg transition-colors ${game.status === GameStatus.PLAYING ? 'bg-amber-500 text-black' : 'bg-red-500 text-white animate-pulse'}`}>
-            {game.status === GameStatus.PLAYING ? '🗣️ 描述與討論' : '🗳️ 抓出臥底吧'}
+    <div className="space-y-8 animate-in fade-in duration-1000">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-black/60 p-6 rounded-3xl border border-white/10 shadow-2xl">
+        <div className="flex items-center gap-6">
+          <div className={`px-5 py-2 rounded-xl font-black uppercase tracking-widest text-sm shadow-xl transition-all ${game.status === GameStatus.PLAYING ? 'bg-amber-500 text-black' : 'bg-red-600 text-white animate-pulse'}`}>
+            {game.status === GameStatus.PLAYING ? 'Discussion Phase' : 'Elimination Vote'}
           </div>
-          <p className="text-gray-400 text-sm">存活: <span className="text-white font-bold">{alivePlayers.length}</span> / {players.length}</p>
+          <div className="text-left">
+            <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">Active Agents</p>
+            <p className="text-white font-black text-xl leading-none">{alivePlayers.length} / {players.filter(p => game.host_is_player || !p.is_host).length}</p>
+          </div>
         </div>
         
         {currentPlayer.is_host && (
           <button 
             onClick={togglePhase}
-            className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-blue-900/20"
+            className="bg-red-600 hover:bg-red-500 text-white px-10 py-3 rounded-xl font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-xl shadow-red-900/40"
           >
-            {game.status === GameStatus.PLAYING ? '結束討論，進入投票' : '確認投票結果'}
+            {game.status === GameStatus.PLAYING ? 'Start Voting' : 'Confirm Results'}
           </button>
         )}
       </div>
 
-      <div className="grid md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {players.map((p) => {
+      <div className="grid lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {players.filter(p => game.host_is_player || !p.is_host).map((p) => {
             const voteCount = players.filter(v => v.voted_for === p.id).length;
             const isVotedByMe = currentPlayer.voted_for === p.id;
 
             return (
               <div 
                 key={p.id} 
-                onClick={() => game.status === GameStatus.VOTING && p.is_alive && handleVote(p.id)}
-                className={`group relative overflow-hidden p-6 rounded-3xl border transition-all duration-300
-                  ${!p.is_alive ? 'opacity-30 grayscale border-transparent bg-black/40 cursor-not-allowed' : 
-                    isVotedByMe ? 'border-red-500 bg-red-500/20 scale-95 shadow-lg' : 
-                    game.status === GameStatus.VOTING ? 'border-white/20 bg-white/5 hover:bg-white/10 cursor-pointer hover:border-red-500/50' : 'border-white/10 bg-white/5'}
+                onClick={() => game.status === GameStatus.VOTING && p.is_alive && !isSpectator && handleVote(p.id)}
+                className={`group relative overflow-hidden p-6 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center gap-3
+                  ${!p.is_alive ? 'opacity-20 grayscale border-transparent bg-black/40 cursor-not-allowed' : 
+                    isVotedByMe ? 'border-red-600 bg-red-600/10 scale-95' : 
+                    game.status === GameStatus.VOTING && !isSpectator ? 'border-white/10 bg-white/5 hover:border-red-600/50 cursor-pointer' : 'border-white/5 bg-white/5'}
                 `}
               >
-                <div className="flex flex-col items-center gap-3">
-                  <div className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold transition-all ${p.is_host ? 'bg-red-600 ring-2 ring-red-500/50' : 'bg-gray-700'} ${isVotedByMe ? 'ring-4 ring-red-500 ring-offset-4 ring-offset-[#0f1115]' : ''}`}>
-                    {p.name.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="font-semibold text-lg truncate w-full text-center text-white">{p.name} {p.id === currentPlayer.id && '(你)'}</span>
-                  {!p.is_alive && <span className="text-[10px] font-bold text-red-500 tracking-widest bg-red-500/10 px-2 py-0.5 rounded">ELIMINATED</span>}
-                  
-                  {game.status === GameStatus.VOTING && p.is_alive && voteCount > 0 && (
-                    <div className="absolute top-2 right-2 bg-red-600 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shadow-lg animate-bounce">
-                      {voteCount}
-                    </div>
-                  )}
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-black transition-all ${p.is_host ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-500'}`}>
+                  {p.name.charAt(0).toUpperCase()}
                 </div>
+                <div className="text-center">
+                  <p className="text-white font-bold text-lg leading-tight truncate px-2">{p.name}</p>
+                  {p.id === currentPlayer.id && <p className="text-[10px] text-red-500 font-black tracking-widest">YOU</p>}
+                </div>
+                
+                {game.status === GameStatus.VOTING && p.is_alive && voteCount > 0 && (
+                  <div className="absolute top-3 right-3 bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-2xl border-2 border-black animate-bounce">
+                    {voteCount}
+                  </div>
+                )}
+                {!p.is_alive && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-red-600/90 text-white px-3 py-1 text-[10px] font-black uppercase tracking-[0.3em] rotate-12">Eliminated</div>
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
 
         <div className="space-y-6">
-          <div className="glass p-8 rounded-3xl border border-white/10 text-center space-y-6">
-            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest">你的個人卡片</h3>
+          <div className="glass p-8 rounded-3xl border border-white/5 text-center space-y-6 bg-black/40">
+            <h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.5em]">Identity Access Card</h3>
             
             <div 
               onClick={() => setRevealed(!revealed)}
-              className={`aspect-[3/4] w-full max-w-[200px] mx-auto rounded-2xl cursor-pointer transition-all duration-700 relative preserve-3d ${revealed ? '[transform:rotateY(180deg)]' : ''}`}
+              className={`aspect-[2/3] w-full max-w-[240px] mx-auto rounded-3xl cursor-pointer transition-all duration-1000 relative preserve-3d shadow-2xl ${revealed ? '[transform:rotateY(180deg)]' : ''}`}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#1e2229] to-[#0f1115] rounded-2xl flex flex-col items-center justify-center border-2 border-white/5 shadow-2xl backface-hidden">
-                <div className="w-12 h-12 bg-red-600/20 rounded-full flex items-center justify-center mb-4">
-                  <span className="text-2xl">🔍</span>
+              {/* Back of Card (Consistent for everyone) */}
+              <div className="absolute inset-0 bg-[#0a0a0a] rounded-3xl flex flex-col items-center justify-center border-4 border-red-900/30 backface-hidden overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-600 to-transparent"></div>
+                <div className="w-20 h-20 bg-red-600/10 rounded-full flex items-center justify-center mb-6 border border-red-600/20">
+                   <div className="w-12 h-12 border-4 border-red-600 rounded-full animate-ping opacity-20"></div>
+                   <span className="absolute text-4xl">🕵️</span>
                 </div>
-                <span className="text-[10px] font-bold text-white/40 tracking-[0.2em] uppercase">點擊翻牌</span>
+                <span className="text-[10px] font-black text-red-600 tracking-[0.4em] uppercase mb-1">Top Secret</span>
+                <span className="text-[8px] font-bold text-gray-700 uppercase">Classified Information</span>
+                <div className="mt-8 flex gap-1">
+                   {[1,2,3,4].map(i => <div key={i} className="w-1 h-8 bg-white/5 rounded-full"></div>)}
+                </div>
               </div>
               
-              <div className="absolute inset-0 bg-white rounded-2xl [transform:rotateY(180deg)] backface-hidden flex flex-col items-center justify-center p-6 space-y-4 shadow-2xl overflow-hidden">
-                <div className={`absolute top-0 left-0 w-full h-2 ${currentPlayer.role === PlayerRole.UNDERCOVER ? 'bg-red-500' : 'bg-cyan-500'}`}></div>
-                <span className={`text-[10px] font-black tracking-[0.3em] ${currentPlayer.role === PlayerRole.UNDERCOVER ? 'text-red-600' : 'text-cyan-600'}`}>
-                  {currentPlayer.role === PlayerRole.CIVILIAN ? '平民' : '臥底'}
-                </span>
-                <span className="text-3xl font-black text-black tracking-tighter leading-none">{getMyWord()}</span>
-                <div className="w-8 h-1 bg-gray-200 rounded-full"></div>
-                <p className="text-[10px] text-gray-400 font-medium italic">點擊隱藏身分</p>
+              {/* Front of Card (Doris Style) */}
+              <div className={`absolute inset-0 bg-black rounded-3xl [transform:rotateY(180deg)] backface-hidden flex flex-col items-center p-8 space-y-4 shadow-2xl overflow-hidden border-2 ${isSpectator ? 'border-amber-500' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'border-red-600' : 'border-cyan-500')}`}>
+                <div className="text-[8px] font-black text-gray-700 uppercase tracking-widest">Access Card</div>
+                <div className="w-full text-center py-2">
+                   <h4 className="text-red-600 font-black text-lg tracking-tighter uppercase leading-none">Who is Undercover</h4>
+                </div>
+                
+                <div className="w-full space-y-1">
+                   <p className="text-[8px] text-gray-600 font-black uppercase text-center tracking-widest">Player</p>
+                   <p className="text-xl font-bold text-white text-center leading-tight truncate">{currentPlayer.name}</p>
+                </div>
+
+                <div className="w-full space-y-2 py-4">
+                   <p className="text-[8px] text-gray-600 font-black uppercase text-center tracking-widest">Your Word</p>
+                   <div className="bg-black border border-red-900/30 rounded-xl py-6 flex items-center justify-center shadow-inner">
+                      <span className="text-3xl font-black text-amber-500 tracking-widest">
+                        {isSpectator ? "MASTER" : getMyWord()}
+                      </span>
+                   </div>
+                </div>
+
+                <div className="w-full space-y-1">
+                   <p className="text-[8px] text-gray-600 font-black uppercase text-center tracking-widest">Status</p>
+                   <p className={`text-center font-black tracking-widest ${isSpectator ? 'text-amber-500' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'text-red-600' : 'text-cyan-500')}`}>
+                      {isSpectator ? "SPECTATOR" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "UNDERCOVER" : "CIVILIAN")}
+                   </p>
+                   <p className="text-[10px] text-gray-500 font-bold text-center">
+                      {isSpectator ? "- 觀戰中 -" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "- 臥底 -" : "- 平民 -")}
+                   </p>
+                </div>
+
+                <div className="pt-4 text-center space-y-1">
+                   <p className="text-[7px] text-gray-700 font-bold leading-tight">DO NOT SHARE THIS INFORMATION.</p>
+                   <p className="text-[7px] text-gray-700 font-bold leading-tight uppercase">Destroy after reading.</p>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white/5 border border-white/10 p-6 rounded-3xl">
-            <h4 className="text-white font-bold mb-3 flex items-center gap-2">
-              <span className="text-blue-400">💡</span> 戰場攻略
+          <div className="bg-black/40 border border-white/5 p-6 rounded-3xl shadow-xl">
+            <h4 className="text-white font-black text-xs uppercase tracking-widest mb-3 flex items-center gap-2">
+              <span className="text-red-600">⚠</span> Intelligence Report
             </h4>
-            <p className="text-xs text-gray-400 leading-relaxed">
-              {currentPlayer.role === PlayerRole.CIVILIAN 
-                ? "平民請注意：臥底可能在模仿你的用詞。如果你發現有人說得跟你很像，但又有一點點違和感，他可能就是臥底！"
-                : "臥底請注意：目前的詞語非常接近。仔細聽別人的描述，試著在你的回合中巧妙地融入他們的資訊。"}
+            <p className="text-[11px] text-gray-500 leading-relaxed font-medium">
+              {isSpectator 
+                ? "身為主持人，請密切注意頻道中的描述。如果發現有人掉隊，可以在投票階段引導大家討論。當前的平民詞為：" + game.civilian_word + "，臥底詞為：" + game.undercover_word
+                : (currentPlayer.role === PlayerRole.CIVILIAN 
+                  ? "分析顯示：臥底正隱藏在你的描述之中。請留意那些描述模糊或略帶遲疑的特工。" 
+                  : "警告：你已被標記為臥底。唯一生存路徑是完美模仿平民的描述，並在投票時混淆視聽。")}
             </p>
           </div>
         </div>

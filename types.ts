@@ -30,5 +30,6 @@ export interface Game {
   civilian_word: string | null;
   undercover_word: string | null;
   winner_team: 'civilian' | 'undercover' | null;
+  host_is_player: boolean; // 新增：主持人是否參與遊戲
   created_at: string;
 }
