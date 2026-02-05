@@ -102,12 +102,13 @@ const HomeView: React.FC<HomeViewProps> = ({ onCreateClick, onJoin, findGame, lo
       <div className="space-y-8 md:space-y-10 animate-in fade-in slide-in-from-right duration-700 delay-200 relative">
         
         {/* Floating Detective Icon - Top Right of Rules */}
-        <div className="absolute -top-14 -right-4 md:-top-20 md:right-0 z-20 pointer-events-none">
+        <div className="absolute -top-12 -right-4 md:-top-16 md:right-0 z-20 pointer-events-none">
           <div className="relative">
-            {/* Red Glow Background */}
-            <div className="absolute inset-0 bg-red-600/40 blur-3xl rounded-full scale-150 animate-pulse"></div>
-            {/* The Detective Emoji with Flicker Animation */}
-            <span className="relative text-7xl md:text-9xl drop-shadow-[0_0_20px_rgba(220,38,38,0.8)] animate-[flicker_3s_linear_infinite] block">
+            {/* Red Glow Background with Breathing Animation */}
+            <div className="absolute inset-0 bg-red-600/40 blur-3xl rounded-full scale-125 animate-[breath_4s_easeInOut_infinite]"></div>
+            
+            {/* The Detective Emoji - Subtle Floating Animation */}
+            <span className="relative text-6xl md:text-8xl drop-shadow-[0_0_15px_rgba(220,38,38,0.6)] animate-[subtle-float_6s_easeInOut_infinite] block">
               🕵️
             </span>
           </div>
@@ -147,9 +148,13 @@ const HomeView: React.FC<HomeViewProps> = ({ onCreateClick, onJoin, findGame, lo
         </div>
       </div>
       <style>{`
-        @keyframes flicker {
-          0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% { opacity: 1; filter: brightness(1.2); }
-          20%, 21.999%, 63%, 63.999%, 65%, 69.999% { opacity: 0.4; filter: brightness(0.5); }
+        @keyframes breath {
+          0%, 100% { opacity: 0.3; transform: scale(1.1); }
+          50% { opacity: 0.7; transform: scale(1.4); }
+        }
+        @keyframes subtle-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
         }
       `}</style>
     </div>
