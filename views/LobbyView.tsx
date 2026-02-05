@@ -15,14 +15,12 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer }) =
   const [manualUndercover, setManualUndercover] = useState('');
   const [starting, setStarting] = useState(false);
 
-  // 核心邏輯：區分「實際參與遊戲的人」
   const agents = game.host_is_player 
     ? players 
     : players.filter(p => !p.is_host);
   
   const host = players.find(p => p.is_host);
   const participantCount = agents.length;
-  // 為了方便測試，將最小人數設定為 3
   const minRequired = 3;
 
   const handleStart = async () => {
@@ -43,15 +41,18 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer }) =
         undWord = aiWords.undercoverWord;
       }
 
-      // 隨機分配角色（僅針對 agents）
       const shuffledAgents = [...agents].sort(() => Math.random() - 0.5);
-      // 臥底人數邏輯：3人時分配1個，之後每4人增加1個
       const undercoverCount = Math.floor(participantCount / 4) || 1;
       
       const updates = players.map(p => {
-        // 如果是觀戰房主，狀態重置但不參與
         if (!game.host_is_player && p.is_host) {
-          return { id: p.id, role: PlayerRole.UNKNOWN, is_alive: false, voted_for: null };
+          return { 
+            id: p.id, 
+            role: PlayerRole.UNKNOWN, 
+            is_alive: false, 
+            voted_for: null,
+            message: null 
+          };
         }
         
         const agentIdx = shuffledAgents.findIndex(sa => sa.id === p.id);
@@ -59,7 +60,8 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer }) =
           id: p.id,
           role: agentIdx < undercoverCount ? PlayerRole.UNDERCOVER : PlayerRole.CIVILIAN,
           is_alive: true,
-          voted_for: null
+          voted_for: null,
+          message: null 
         };
       });
 
@@ -94,7 +96,7 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer }) =
              <div className="px-2 py-0.5 bg-red-600/10 border border-red-600/30 rounded text-[8px] md:text-[9px] font-black text-red-500 uppercase tracking-widest">
                {game.host_is_player ? "Active Deployment" : "Surveillance"}
              </div>
-             <p className="text-gray-500 text-[9px] md:text-[10px] font-bold tracking-widest uppercase">Agents: {participantCount} / 12</p>
+             <p className="text-gray-500 text-[9px] md:text-[10px] font-bold tracking-widest uppercase">Active Agents: {participantCount}</p>
           </div>
         </div>
         <div onClick={copyCode} className="w-full md:w-auto cursor-pointer bg-red-600/10 border border-red-500/20 px-4 py-3 rounded-lg text-center group transition-all hover:bg-red-600/20">
@@ -129,11 +131,11 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer }) =
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {host && (
           <div className={`p-4 rounded-xl border-2 text-center flex flex-col items-center gap-2 transition-all shadow-lg ${!game.host_is_player ? 'bg-amber-500/5 border-amber-500/20' : 'bg-white/5 border-white/10'}`}>
-            <div className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-lg md:text-xl font-black shadow-inner ${!game.host_is_player ? 'bg-red-600 text-white' : 'bg-red-600 text-white'}`}>
+            <div className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-lg md:text-xl font-black shadow-inner bg-red-600 text-white shadow-red-900/40`}>
               {host.name.charAt(0).toUpperCase()}
             </div>
             <span className="text-xs md:text-sm font-black truncate w-full text-gray-100">{host.name}</span>
-            <span className={`text-[7px] md:text-[8px] px-2 py-0.5 rounded-full font-black tracking-widest border ${!game.host_is_player ? 'bg-red-600/20 text-red-500 border-red-500/30' : 'bg-red-600/20 text-red-500 border-red-500/30'}`}>
+            <span className={`text-[7px] md:text-[8px] px-2 py-0.5 rounded-full font-black tracking-widest border bg-red-600/20 text-red-500 border-red-500/30`}>
               {game.host_is_player ? "HOST" : "GM"}
             </span>
           </div>
@@ -146,13 +148,6 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer }) =
             </div>
             <span className="text-xs md:text-sm font-bold truncate w-full text-zinc-300">{p.name}</span>
             <span className="text-[7px] md:text-[8px] bg-zinc-900 text-zinc-600 px-2 py-0.5 rounded-full border border-white/5 font-black tracking-widest uppercase">Agent</span>
-          </div>
-        ))}
-
-        {Array.from({ length: Math.max(0, 6 - players.length) }).map((_, i) => (
-          <div key={`empty-${i}`} className="border border-dashed border-white/5 rounded-xl flex flex-col items-center justify-center h-28 md:h-32 opacity-20">
-            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-dashed border-white/20 mb-2"></div>
-            <span className="text-[8px] md:text-[9px] font-black text-zinc-700 uppercase tracking-widest">Waiting...</span>
           </div>
         ))}
       </div>
@@ -169,8 +164,8 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer }) =
         </button>
       ) : (
         <div className="text-center bg-white/5 p-4 md:p-5 rounded-lg border border-white/5">
-          <p className="text-gray-500 text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">
-            Awaiting Command...
+          <p className="text-gray-500 text-[9px] md:text-[10px] font-black uppercase tracking-widest animate-pulse">
+            Awaiting Command Center Authorization...
           </p>
         </div>
       )}
