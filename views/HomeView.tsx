@@ -103,7 +103,7 @@ const HomeView: React.FC<HomeViewProps> = ({ onCreateClick, onJoin, findGame, lo
                 <span className="text-[10px] font-black text-red-600 uppercase tracking-[0.3em]">Directive Active</span>
              </div>
              <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight flex items-center gap-3">
-                遊戲規則說明
+                誰是臥底 遊戲規則說明
                 <div className="flex-1 h-[2px] bg-gradient-to-r from-red-600/50 to-transparent"></div>
              </h2>
           </div>
