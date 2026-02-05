@@ -12,39 +12,43 @@
 
 ---
 
-## 🛠️ 2. Supabase 資料庫設定
+## 🛠️ 2. Supabase 資料庫與權限設定 (必做！)
 
 請在 Supabase 的 **SQL Editor** 執行以下指令：
 
 ```sql
--- 建立遊戲表
-CREATE TABLE IF NOT EXISTS games (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  room_code TEXT UNIQUE,
-  status TEXT DEFAULT 'lobby',
-  civilian_word TEXT,
-  undercover_word TEXT,
-  winner_team TEXT,
-  host_is_player BOOLEAN DEFAULT true,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- 1. 確保欄位完整
+ALTER TABLE games ADD COLUMN IF NOT EXISTS room_code TEXT UNIQUE;
+ALTER TABLE games ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'lobby';
+ALTER TABLE games ADD COLUMN IF NOT EXISTS civilian_word TEXT;
+ALTER TABLE games ADD COLUMN IF NOT EXISTS undercover_word TEXT;
+ALTER TABLE games ADD COLUMN IF NOT EXISTS host_is_player BOOLEAN DEFAULT true;
+ALTER TABLE games ADD COLUMN IF NOT EXISTS suspect_ids TEXT[];
+ALTER TABLE games ADD COLUMN IF NOT EXISTS round INTEGER DEFAULT 0;
 
--- 建立玩家表
-CREATE TABLE IF NOT EXISTS players (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  game_id UUID REFERENCES games(id) ON DELETE CASCADE,
-  name TEXT,
-  role TEXT DEFAULT 'unknown',
-  is_host BOOLEAN DEFAULT false,
-  is_alive BOOLEAN DEFAULT true,
-  voted_for TEXT,
-  message TEXT, -- 新增：玩家描述
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+ALTER TABLE players ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'unknown';
+ALTER TABLE players ADD COLUMN IF NOT EXISTS is_alive BOOLEAN DEFAULT true;
+ALTER TABLE players ADD COLUMN IF NOT EXISTS voted_for TEXT;
+ALTER TABLE players ADD COLUMN IF NOT EXISTS message TEXT;
+
+-- 2. 提升 Realtime 同步品質 (關鍵：解決刪除時同步失敗)
+-- 這能確保刪除 Row 時，Supabase 會傳送所有欄位資訊給訂閱者
+ALTER TABLE players REPLICA IDENTITY FULL;
+ALTER TABLE games REPLICA IDENTITY FULL;
+
+-- 3. 開啟 RLS 權限政策
+ALTER TABLE games ENABLE ROW LEVEL SECURITY;
+ALTER TABLE players ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public Read Games" ON games FOR SELECT USING (true);
+CREATE POLICY "Public Read Players" ON players FOR SELECT USING (true);
+CREATE POLICY "Public Insert Games" ON games FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public Insert Players" ON players FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public Update Games" ON games FOR UPDATE USING (true);
+CREATE POLICY "Public Update Players" ON players FOR UPDATE USING (true);
+CREATE POLICY "Public Delete Players" ON players FOR DELETE USING (true);
+
+-- 4. 開啟即時同步 (Realtime)
+-- 請手動到 Database -> Replication -> supabase_realtime 
+-- 將 games 和 players 表格勾選為 ON。
 ```
-
-**重要：開啟即時同步 (Realtime)**
-1. 到 Supabase 後台左側選單點擊 **Database**。
-2. 點擊 **Replication**。
-3. 在 `supabase_realtime` 項目中點擊 `0 tables` (或已有的數字)。
-4. 將 `games` 和 `players` 的開關都切換為 **ON**。

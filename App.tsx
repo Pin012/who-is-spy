@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './supabaseClient';
 import { Game, Player, GameStatus, PlayerRole } from './types';
 import HomeView from './views/HomeView';
@@ -8,15 +8,18 @@ import ModeSelectionView from './views/ModeSelectionView';
 
 const App: React.FC = () => {
   const [currentGame, setCurrentGame] = useState<Game | null>(null);
-  const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
+  const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(false);
   
-  // UI States
   const [isSelectingMode, setIsSelectingMode] = useState(false);
   const [playerName, setPlayerName] = useState('');
 
-  // 檢查所有必要的金鑰是否存在
+  // 衍生當前玩家資料
+  const currentPlayer = useMemo(() => 
+    players.find(p => p.id === myPlayerId) || null
+  , [players, myPlayerId]);
+
   const missingKeys = [];
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) missingKeys.push("NEXT_PUBLIC_SUPABASE_URL");
   if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) missingKeys.push("NEXT_PUBLIC_SUPABASE_ANON_KEY");
@@ -30,33 +33,12 @@ const App: React.FC = () => {
             <span className="text-3xl">⚠️</span>
           </div>
           <h1 className="text-2xl font-bold text-white">尚未完成部署設定</h1>
-          <p className="text-gray-400">
-            請在 Vercel 的環境變數中設定以下欄位，否則遊戲無法運行：
-          </p>
-          <div className="bg-black/40 p-4 rounded-xl text-left space-y-2">
-            {missingKeys.map(key => (
-              <div key={key} className="flex items-center gap-2 text-red-400 font-mono text-sm">
-                <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                {key}
-              </div>
-            ))}
-          </div>
-          <div className="pt-4">
-            <a 
-              href="https://vercel.com" 
-              target="_blank" 
-              className="inline-block bg-white text-black px-6 py-2 rounded-xl font-bold hover:bg-gray-200 transition-colors"
-            >
-              去 Vercel 設定
-            </a>
-          </div>
-          <p className="text-xs text-gray-500 italic">設定完成後，請重新部署或重整頁面。</p>
+          <p className="text-gray-400">請在 Vercel 的環境變數中設定必要欄位。</p>
         </div>
       </div>
     );
   }
 
-  // Sync game and players
   useEffect(() => {
     if (!currentGame || !supabase) return;
 
@@ -76,14 +58,24 @@ const App: React.FC = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'games', filter: `id=eq.${currentGame.id}` }, (payload) => {
         setCurrentGame(payload.new as Game);
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'players', filter: `game_id=eq.${currentGame.id}` }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          setPlayers(prev => [...prev, payload.new as Player]);
-        } else if (payload.eventType === 'UPDATE') {
-          setPlayers(prev => prev.map(p => p.id === payload.new.id ? (payload.new as Player) : p));
-          if (payload.new.id === currentPlayer?.id) {
-            setCurrentPlayer(payload.new as Player);
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'players' }, (payload) => {
+        // 解決 DELETE 事件不帶篩選欄位的問題：移除伺服器端 filter，改在前端判斷
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          const newP = payload.new as Player;
+          if (newP.game_id === currentGame.id) {
+            setPlayers(prev => {
+              const idx = prev.findIndex(p => p.id === newP.id);
+              if (idx > -1) {
+                const updated = [...prev];
+                updated[idx] = newP;
+                return updated;
+              }
+              return [...prev, newP].sort((a, b) => a.created_at.localeCompare(b.created_at));
+            });
           }
+        } else if (payload.eventType === 'DELETE') {
+          // DELETE 事件 payload.old 只保證有 id
+          setPlayers(prev => prev.filter(p => p.id !== payload.old.id));
         }
       })
       .subscribe();
@@ -91,7 +83,7 @@ const App: React.FC = () => {
     return () => {
       supabase!.removeChannel(gameChannel);
     };
-  }, [currentGame?.id, currentPlayer?.id]);
+  }, [currentGame?.id]);
 
   const handleJoinGame = async (gameId: string, nameToUse: string, isHost: boolean = false) => {
     if (!supabase) return;
@@ -112,7 +104,8 @@ const App: React.FC = () => {
           name: nameToUse,
           is_host: isHost,
           is_alive: true,
-          role: PlayerRole.UNKNOWN
+          role: PlayerRole.UNKNOWN,
+          message: null
         })
         .select()
         .single();
@@ -120,7 +113,7 @@ const App: React.FC = () => {
       if (playerError) throw playerError;
 
       setCurrentGame(gameData);
-      setCurrentPlayer(playerData);
+      setMyPlayerId(playerData.id);
     } catch (err) {
       alert(err instanceof Error ? err.message : "加入遊戲失敗");
     } finally {
@@ -138,7 +131,8 @@ const App: React.FC = () => {
         .insert({
           room_code: roomCode,
           status: GameStatus.LOBBY,
-          host_is_player: hostIsPlayer
+          host_is_player: hostIsPlayer,
+          round: 0
         })
         .select()
         .single();
@@ -146,7 +140,7 @@ const App: React.FC = () => {
       if (gameError) throw gameError;
       await handleJoinGame(gameData.id, playerName, true);
     } catch (err) {
-      alert("建立遊戲失敗，請檢查資料庫連線");
+      alert("建立遊戲失敗");
     } finally {
       setLoading(false);
       setIsSelectingMode(false);
@@ -164,11 +158,11 @@ const App: React.FC = () => {
   };
 
   const renderContent = () => {
-    if (currentGame) {
+    if (currentGame && currentPlayer) {
       if (currentGame.status === GameStatus.LOBBY) {
-        return <LobbyView game={currentGame} players={players} currentPlayer={currentPlayer!} onStartGame={() => {}} />;
+        return <LobbyView game={currentGame} players={players} currentPlayer={currentPlayer} onStartGame={() => {}} />;
       }
-      return <GameView game={currentGame} players={players} currentPlayer={currentPlayer!} />;
+      return <GameView game={currentGame} players={players} currentPlayer={currentPlayer} />;
     }
 
     if (isSelectingMode) {
@@ -190,15 +184,11 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4 selection:bg-red-600/30">
       <div className="w-full relative py-12">
-        {/* Background Atmosphere */}
         <div className="fixed top-0 left-0 w-full h-full pointer-events-none opacity-40">
            <div className="absolute top-[10%] left-[5%] w-[40rem] h-[40rem] bg-red-600/5 blur-[120px] rounded-full animate-pulse"></div>
            <div className="absolute bottom-[10%] right-[5%] w-[35rem] h-[35rem] bg-blue-600/5 blur-[120px] rounded-full animate-pulse [animation-delay:2s]"></div>
         </div>
-
-        <div className="relative z-10">
-          {renderContent()}
-        </div>
+        <div className="relative z-10">{renderContent()}</div>
       </div>
     </div>
   );
