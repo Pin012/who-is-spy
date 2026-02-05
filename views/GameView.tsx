@@ -298,10 +298,10 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
                    <div className="space-y-1">
                      <p className="text-[8px] text-gray-700 font-bold uppercase tracking-[0.6em] mb-3">Security Status</p>
                      <p className={`font-black text-2xl tracking-[0.05em] uppercase leading-none ${isSpectator ? 'text-amber-500' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'text-red-600' : 'text-cyan-400')}`}>
-                        {isSpectator ? "Observer" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "Undercover" : "Civilian Agent")}
+                        {isSpectator ? "Observer" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "Undercover" : "Civilian")}
                      </p>
                      <div className={`text-[12px] font-black mt-4 inline-block px-5 py-2 rounded-sm border ${isSpectator ? 'text-amber-500 border-amber-500/30 bg-amber-500/10' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'text-red-600 border-red-600/30 bg-red-600/10' : 'text-cyan-400 border-cyan-400/30 bg-cyan-400/10')}`}>
-                        {isSpectator ? "上帝視角" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "潛伏臥底" : "平民特務")}
+                        {isSpectator ? "上帝視角" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "臥底" : "平民")}
                      </div>
                    </div>
                 </div>
