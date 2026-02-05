@@ -160,7 +160,10 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
               <label className="text-[8px] font-black text-gray-500 uppercase tracking-[0.3em] mb-2 block">Transmission Input</label>
               {canSeeOthersMessages ? (
                  <div className="py-2 text-red-500 font-bold italic text-sm">
-                   " {currentPlayer.message || 'Intel Data Sent'} " <span className="ml-2 text-[9px] uppercase tracking-tighter text-gray-600">[Syncing...]</span>
+                   <span className="bg-red-600/10 border border-red-600/20 px-3 py-1.5 rounded inline-block animate-[flash_0.5s_ease-out]">
+                      {currentPlayer.message || 'Intel Data Sent'}
+                   </span>
+                   <span className="ml-3 text-[9px] uppercase tracking-tighter text-gray-600">[Syncing...]</span>
                  </div>
               ) : (
                 <div className="flex flex-col sm:flex-row gap-2">
@@ -184,7 +187,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
             </div>
           )}
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {players.filter(p => game.host_is_player || !p.is_host).map((p) => {
               const voteCount = players.filter(v => v.voted_for === p.id).length;
               const isVotedByMe = currentPlayer.voted_for === p.id;
@@ -194,29 +197,33 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
                 <div 
                   key={p.id} 
                   onClick={() => game.status === GameStatus.VOTING && p.is_alive && !isSpectator && handleVote(p.id)}
-                  className={`group relative overflow-hidden p-5 rounded-lg border-2 transition-all duration-300 flex flex-col items-center gap-3
+                  className={`group relative overflow-hidden p-6 rounded-lg border-2 transition-all duration-300 flex flex-col items-center gap-4
                     ${!p.is_alive ? 'opacity-20 grayscale border-transparent bg-black/40 cursor-not-allowed' : 
                       isVotedByMe ? 'border-red-600 bg-red-600/10 scale-95 shadow-2xl' : 
                       game.status === GameStatus.VOTING && !isSpectator ? 'border-white/10 bg-white/5 hover:border-red-600/50 cursor-pointer shadow-lg' : 
                       (p.id === currentPlayer.id ? 'border-red-600/20 bg-red-600/5' : 'border-white/5 bg-white/5')}
                   `}
                 >
-                  <div className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-lg md:text-xl font-black transition-all shadow-inner 
+                  <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-xl md:text-2xl font-black transition-all shadow-inner 
                     ${p.id === currentPlayer.id ? 'bg-red-600 text-white shadow-red-900/40' : 'bg-zinc-800 text-zinc-500'}
                   `}>
                     {p.name.charAt(0).toUpperCase()}
                   </div>
-                  <div className="text-center w-full space-y-1">
-                    <p className="text-white font-bold text-xs md:text-sm leading-tight truncate px-1">{p.name}</p>
-                    <div className="h-10 flex items-center justify-center">
+                  <div className="text-center w-full space-y-2">
+                    <p className="text-white font-black text-sm md:text-base leading-tight truncate px-1 uppercase tracking-wider">{p.name}</p>
+                    <div className="h-14 flex items-center justify-center w-full">
                       {p.is_alive ? (
                         hasSent ? (
                           canSeeOthersMessages ? (
-                            <p className="text-[10px] text-gray-400 font-medium italic leading-tight line-clamp-2">"{p.message}"</p>
+                            <div className="bg-white/5 border border-white/10 rounded-md px-3 py-2 w-full animate-[flash_0.8s_ease-out]">
+                               <p className="text-xs md:text-sm text-gray-200 font-bold leading-tight line-clamp-2">
+                                 {p.message}
+                               </p>
+                            </div>
                           ) : (
-                            <div className="flex flex-col items-center gap-1">
-                              <div className="text-[7px] font-black text-red-600 uppercase tracking-widest animate-pulse">Encoded</div>
-                              <div className="w-10 h-0.5 bg-red-600/20 rounded-full overflow-hidden relative">
+                            <div className="flex flex-col items-center gap-1.5">
+                              <div className="text-[7px] font-black text-red-600 uppercase tracking-widest animate-pulse">Encoded Intel</div>
+                              <div className="w-12 h-1 bg-red-600/20 rounded-full overflow-hidden relative">
                                 <div className="absolute inset-0 bg-red-600 animate-[loading_1s_infinite]"></div>
                               </div>
                             </div>
@@ -230,80 +237,70 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
                     </div>
                   </div>
                   {game.status === GameStatus.VOTING && p.is_alive && voteCount > 0 && (
-                    <div className="absolute top-1.5 right-1.5 bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shadow-2xl border-2 border-black">{voteCount}</div>
+                    <div className="absolute top-2 right-2 bg-red-600 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shadow-2xl border-2 border-black">{voteCount}</div>
                   )}
-                  {!p.is_alive && <div className="absolute inset-0 flex items-center justify-center bg-black/60"><div className="bg-red-700 text-white px-2 py-0.5 text-[7px] font-black uppercase tracking-[0.2em] rotate-[-15deg] shadow-2xl">Eliminated</div></div>}
+                  {!p.is_alive && <div className="absolute inset-0 flex items-center justify-center bg-black/60"><div className="bg-red-700 text-white px-3 py-1 text-[8px] font-black uppercase tracking-[0.2em] rotate-[-15deg] shadow-2xl border border-red-500/50">Eliminated</div></div>}
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* --- 重新設計的橫向身份卡 --- */}
+        {/* --- 持續直向佈局的身份卡 --- */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="p-1 rounded-md border-2 border-red-600/40 bg-zinc-950 shadow-[0_0_60px_rgba(220,38,38,0.15)] relative group">
+          <div className="p-1 rounded-md border-2 border-red-600/40 bg-zinc-950 shadow-[0_0_60px_rgba(220,38,38,0.15)] relative group overflow-hidden">
             <div 
               onClick={() => setRevealed(!revealed)} 
-              className={`aspect-[5/3] w-full max-w-[400px] mx-auto rounded-md cursor-pointer transition-all duration-1000 relative preserve-3d ${revealed ? '[transform:rotateY(180deg)]' : ''}`}
+              className={`aspect-[3/4.5] w-full max-w-[320px] mx-auto rounded-md cursor-pointer transition-all duration-1000 relative preserve-3d ${revealed ? '[transform:rotateY(180deg)]' : ''}`}
             >
               {/* 卡片背面 (未解鎖狀態) */}
-              <div className="absolute inset-0 bg-[#080808] rounded-md flex flex-col items-center justify-center border border-white/5 backface-hidden overflow-hidden px-4">
+              <div className="absolute inset-0 bg-[#080808] rounded-md flex flex-col items-center justify-center border border-white/5 backface-hidden overflow-hidden px-6">
                 <TacticalCorners color="red" />
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '16px 16px'}}></div>
-                <div className="w-16 h-16 bg-red-600/10 rounded-full flex items-center justify-center mb-4 border border-red-600/20 shadow-[0_0_20px_rgba(220,38,38,0.2)]">
-                  <span className="text-4xl drop-shadow-[0_0_15px_rgba(220,38,38,0.5)]">🕵️</span>
+                <div className="w-20 h-20 bg-red-600/10 rounded-full flex items-center justify-center mb-6 border border-red-600/20 shadow-[0_0_30px_rgba(220,38,38,0.3)]">
+                  <span className="text-5xl drop-shadow-[0_0_15px_rgba(220,38,38,0.5)]">🕵️</span>
                 </div>
-                <span className="text-[10px] font-black text-white/40 tracking-[0.6em] uppercase mb-1">Access Required</span>
-                <span className="text-[7px] font-bold text-gray-800 uppercase tracking-widest text-center">Biometric Authorization Protocol</span>
+                <span className="text-[10px] font-black text-white/40 tracking-[0.8em] uppercase mb-1.5">Access Card</span>
+                <span className="text-[7px] font-bold text-gray-800 uppercase tracking-widest text-center">Biometric Encryption Protocol V3.1</span>
               </div>
               
-              {/* 卡片正面 (身份顯示) */}
-              <div className="absolute inset-0 bg-[#0a0a0a] rounded-md [transform:rotateY(180deg)] backface-hidden flex flex-row items-stretch overflow-hidden border border-white/10 shadow-inner">
+              {/* 卡片正面 (身份顯示 - 維持直向排版) */}
+              <div className="absolute inset-0 bg-[#0a0a0a] rounded-md [transform:rotateY(180deg)] backface-hidden flex flex-col items-center p-6 justify-between overflow-hidden border border-white/10 shadow-inner">
                 <TacticalCorners color={isSpectator ? 'amber' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'red' : 'cyan')} />
+                <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{backgroundImage: 'linear-gradient(45deg, #fff 1px, transparent 1px), linear-gradient(-45deg, #fff 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
                 
-                {/* 左側資訊區 */}
-                <div className="w-1/3 border-r border-white/5 bg-white/[0.02] p-4 flex flex-col justify-between">
-                  <div className="space-y-1">
-                    <div className="text-[7px] font-black text-gray-700 uppercase tracking-widest">Operator</div>
-                    <p className="text-sm font-black text-white leading-tight truncate">{currentPlayer.name}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="text-[7px] font-black text-gray-700 uppercase tracking-widest">Clearance</div>
-                    <div className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-sm border inline-block
-                      ${isSpectator ? 'text-amber-500 border-amber-500/20 bg-amber-500/5' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'text-red-600 border-red-600/20 bg-red-600/5' : 'text-cyan-500 border-cyan-500/20 bg-cyan-500/5')}
-                    `}>
-                      LVL 0{isSpectator ? '9' : (currentPlayer.role === PlayerRole.UNDERCOVER ? '4' : '1')}
-                    </div>
-                  </div>
+                <div className="w-full text-center space-y-1">
+                   <div className="text-[8px] font-black text-gray-700 uppercase tracking-[0.5em] mb-1">Authorization Data</div>
+                   <h2 className="text-lg font-black text-red-600 uppercase tracking-tighter leading-none flex items-center justify-center gap-2">
+                     <span className="w-1.5 h-1.5 bg-red-600 rounded-full"></span>
+                     Hidden Agenda
+                   </h2>
+                </div>
+                
+                <div className="w-full space-y-1 text-center bg-white/[0.02] py-3 rounded-lg border border-white/5 shadow-inner">
+                   <p className="text-[7px] text-gray-700 font-bold uppercase tracking-[0.5em]">Identity Profile</p>
+                   <p className="text-xl font-black text-white leading-none tracking-tight">{currentPlayer.name}</p>
                 </div>
 
-                {/* 右側主顯區 */}
-                <div className="flex-1 p-5 flex flex-col justify-between items-center bg-gradient-to-br from-black to-zinc-900/40">
-                  <div className="w-full flex justify-between items-start">
-                    <div className="text-[7px] font-bold text-gray-500 uppercase tracking-[0.3em]">Identity Hub</div>
-                    <div className="text-[7px] font-mono text-zinc-800">SN-82920-X</div>
-                  </div>
-
-                  <div className="text-center space-y-2 w-full">
-                    <p className="text-[7px] text-gray-700 font-bold uppercase tracking-[0.4em]">Designated Word</p>
-                    <div className="bg-black border border-white/5 rounded-sm py-3 px-6 shadow-inner relative group-hover:border-red-600/20 transition-colors">
-                      <span className={`text-2xl font-black tracking-widest drop-shadow-[0_0_8px_rgba(251,191,36,0.2)] ${isSpectator ? 'text-amber-500' : 'text-white'}`}>
-                        {isSpectator ? "OVERSEER" : getMyWord()}
+                <div className="w-full space-y-3 text-center">
+                   <p className="text-[7px] text-gray-700 font-bold uppercase tracking-[0.5em]">Designated Intel</p>
+                   <div className="bg-black border border-red-900/40 rounded-lg py-5 flex items-center justify-center shadow-[inset_0_0_20px_rgba(220,38,38,0.15)] mx-1 relative group-hover:border-red-600/30 transition-colors">
+                      <span className={`text-3xl font-black tracking-[0.15em] drop-shadow-[0_0_12px_rgba(251,191,36,0.3)] ${isSpectator ? 'text-amber-500' : 'text-white'}`}>
+                        {isSpectator ? "MASTER" : getMyWord()}
                       </span>
-                    </div>
-                  </div>
+                   </div>
+                </div>
 
-                  <div className="w-full flex justify-between items-end">
-                    <div className="text-left">
-                      <p className="text-[7px] text-gray-700 font-bold uppercase tracking-widest">Status</p>
-                      <p className={`font-black text-xs tracking-widest uppercase ${isSpectator ? 'text-amber-500' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'text-red-600' : 'text-cyan-400')}`}>
+                <div className="w-full text-center pt-2">
+                   <div className="space-y-1">
+                     <p className="text-[7px] text-gray-700 font-bold uppercase tracking-[0.5em] mb-1">Security Status</p>
+                     <p className={`font-black text-lg tracking-widest uppercase leading-none ${isSpectator ? 'text-amber-500' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'text-red-600' : 'text-cyan-400')}`}>
                         {isSpectator ? "Spectator" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "Undercover" : "Civilian Agent")}
-                      </p>
-                    </div>
-                    <div className="opacity-10 grayscale scale-75 origin-bottom-right">
-                      <span className="text-2xl">⚡</span>
-                    </div>
-                  </div>
+                     </p>
+                     <div className={`text-[10px] font-black mt-2 inline-block px-3 py-1 rounded-sm border ${isSpectator ? 'text-amber-500 border-amber-500/20 bg-amber-500/5' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'text-red-600 border-red-600/20 bg-red-600/5' : 'text-cyan-400 border-cyan-400/20 bg-cyan-400/5')}`}>
+                        {isSpectator ? "上帝模式" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "潛伏臥底" : "平民特務")}
+                     </div>
+                   </div>
                 </div>
               </div>
             </div>
@@ -312,15 +309,22 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
           <div className="bg-black border border-white/5 p-4 rounded-lg shadow-2xl relative overflow-hidden">
             <div className={`absolute top-0 left-0 w-1 h-full ${isSpectator ? 'bg-amber-600' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'bg-red-600' : 'bg-cyan-600')}`}></div>
             <h4 className="text-white font-black text-[8px] uppercase tracking-[0.3em] mb-1.5 flex items-center gap-2">
-              <span className={`${isSpectator ? 'text-amber-500' : 'text-red-600'} animate-pulse`}>●</span> Intel Protocol
+              <span className={`${isSpectator ? 'text-amber-500' : 'text-red-600'} animate-pulse`}>●</span> Mission Protocol
             </h4>
             <p className="text-[9px] text-gray-500 leading-relaxed font-medium italic">
-              {canSeeOthersMessages ? "通訊解碼完成。潛伏者可能就在你身邊，觀察詞彙細微的差異。" : "授權協議生效中。請先提交您的詞彙描述以與特務網路同步情報。"}
+              {canSeeOthersMessages ? "通訊網路解碼中。請留意其他特務的描述，尋找詞彙與您的細微差別。" : "安全協議鎖定中。請先提交描述以同步您的情報至特務終端。"}
             </p>
           </div>
         </div>
       </div>
-      <style>{`@keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }`}</style>
+      <style>{`
+        @keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        @keyframes flash {
+          0% { opacity: 0; filter: brightness(2); transform: scale(1.05); }
+          50% { opacity: 1; filter: brightness(1.5); transform: scale(1); }
+          100% { opacity: 1; filter: brightness(1); }
+        }
+      `}</style>
     </div>
   );
 };
