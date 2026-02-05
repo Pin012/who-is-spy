@@ -13,11 +13,20 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
   const [voting, setVoting] = useState(false);
   const [localMessage, setLocalMessage] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
-  const [isTie, setIsTie] = useState(false);
   const [sentThisTurn, setSentThisTurn] = useState(false);
+  const [showRoundBanner, setShowRoundBanner] = useState(false);
+
+  // 當狀態變回 PLAYING 時顯示回合 Banner
+  useEffect(() => {
+    if (game.status === GameStatus.PLAYING) {
+      setShowRoundBanner(true);
+      const timer = setTimeout(() => setShowRoundBanner(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [game.status, game.round]);
 
   useEffect(() => {
-    if (game.status === GameStatus.PLAYING && !currentPlayer.message) {
+    if ((game.status === GameStatus.PLAYING || game.status === GameStatus.DEFENDING) && !currentPlayer.message) {
       setSentThisTurn(false);
     }
   }, [game.status, currentPlayer.message]);
@@ -33,6 +42,8 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
     return "N/A";
   };
 
+  const isSuspect = game.suspect_ids?.includes(currentPlayer.id) || false;
+
   const handleVote = async (targetId: string) => {
     if (!currentPlayer.is_alive || game.status !== GameStatus.VOTING || !supabase || voting) return;
     setVoting(true);
@@ -46,6 +57,9 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
   const handleSubmitMessage = async () => {
     const msg = localMessage.trim();
     if (!msg || !supabase || sendingMessage) return;
+    // 如果是申冤階段，只有嫌疑人可以發言
+    if (game.status === GameStatus.DEFENDING && !isSuspect) return;
+
     setSendingMessage(true);
     try {
       const { error } = await supabase!.from('players').update({ message: msg }).eq('id', currentPlayer.id);
@@ -62,6 +76,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
 
   const togglePhase = async () => {
     if (!supabase) return;
+    
     if (game.status === GameStatus.VOTING) {
       const votes: Record<string, number> = {};
       const eligibleVoters = players.filter(p => p.is_alive && (game.host_is_player || !p.is_host));
@@ -71,24 +86,43 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
       if (voteValues.length > 0) {
         const maxVotes = Math.max(...voteValues);
         const candidatesWithMax = Object.entries(votes).filter(([id, count]) => count === maxVotes);
+        
         if (candidatesWithMax.length === 1) {
+          // 單一高票：淘汰
           const eliminatedId = candidatesWithMax[0][0];
           await supabase!.from('players').update({ is_alive: false }).eq('id', eliminatedId);
-          setIsTie(false);
+          // 回到描述階段並增加回合數，清空嫌疑人
+          await supabase!.from('players').update({ voted_for: null, message: null }).eq('game_id', game.id);
+          await supabase!.from('games').update({ 
+            status: GameStatus.PLAYING, 
+            suspect_ids: null, 
+            round: game.round + 1 
+          }).eq('id', game.id);
+          return;
         } else {
-          setIsTie(true);
+          // 平票：記錄嫌疑人並進入申冤階段
+          const suspectIds = candidatesWithMax.map(([id]) => id);
+          await supabase!.from('players').update({ voted_for: null, message: null }).eq('game_id', game.id);
+          await supabase!.from('games').update({ 
+            status: GameStatus.DEFENDING, 
+            suspect_ids: suspectIds 
+          }).eq('id', game.id);
+          return;
         }
       }
+      // 無人投票時，直接回描述
       await supabase!.from('players').update({ voted_for: null, message: null }).eq('game_id', game.id);
+      await supabase!.from('games').update({ status: GameStatus.PLAYING, round: game.round + 1 }).eq('id', game.id);
+    } else {
+      // PLAYING 或 DEFENDING -> VOTING
+      await supabase!.from('games').update({ status: GameStatus.VOTING }).eq('id', game.id);
     }
-    const nextStatus = game.status === GameStatus.PLAYING ? GameStatus.VOTING : GameStatus.PLAYING;
-    await supabase!.from('games').update({ status: nextStatus }).eq('id', game.id);
   };
 
   const resetGame = async () => {
     if (!supabase || !currentPlayer.is_host) return;
     await supabase!.from('players').update({ is_alive: true, role: PlayerRole.UNKNOWN, voted_for: null, message: null }).eq('game_id', game.id);
-    await supabase!.from('games').update({ status: GameStatus.LOBBY, civilian_word: null, undercover_word: null }).eq('id', game.id);
+    await supabase!.from('games').update({ status: GameStatus.LOBBY, civilian_word: null, undercover_word: null, round: 0, suspect_ids: null }).eq('id', game.id);
   };
 
   const isSpectator = !game.host_is_player && currentPlayer.is_host;
@@ -99,6 +133,10 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
 
   const myMessageOnServer = (currentPlayer.message || '').trim().length > 0;
   const canSeeOthersMessages = isSpectator || sentThisTurn || myMessageOnServer;
+
+  // 判斷當前階段是否允許我輸入
+  const canIInput = !isSpectator && currentPlayer.is_alive && 
+    (game.status === GameStatus.PLAYING || (game.status === GameStatus.DEFENDING && isSuspect));
 
   const TacticalCorners = ({ color = 'red' }) => (
     <>
@@ -133,12 +171,26 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-1000 max-w-7xl mx-auto px-4 pb-20">
+    <div className="space-y-6 animate-in fade-in duration-1000 max-w-7xl mx-auto px-4 pb-20 relative">
+      {/* Round Banner Overlay */}
+      {showRoundBanner && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
+          <div className="bg-red-600 text-white px-20 py-10 rotate-[-5deg] shadow-[0_0_100px_rgba(220,38,38,0.5)] border-y-4 border-white animate-in zoom-in fade-in duration-300">
+             <p className="text-[10px] font-black tracking-[1em] uppercase mb-2 opacity-70">Tactical Synchronization</p>
+             <h2 className="text-6xl font-black italic tracking-tighter uppercase">Round {game.round}</h2>
+             <p className="mt-4 font-black tracking-[0.4em] text-xs">COMMENCE DESCRIPTION</p>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-black p-4 rounded-xl border border-white/10 shadow-2xl relative overflow-hidden">
-        <div className={`absolute top-0 left-0 w-1 h-full ${isTie ? 'bg-amber-500 animate-pulse' : 'bg-red-600'}`}></div>
+        <div className={`absolute top-0 left-0 w-1 h-full ${game.status === GameStatus.DEFENDING ? 'bg-amber-500 animate-pulse' : 'bg-red-600'}`}></div>
         <div className="flex items-center gap-6">
-          <div className={`px-3 py-1.5 rounded-md font-black uppercase tracking-[0.2em] text-[8px] shadow-2xl transition-all ${game.status === GameStatus.PLAYING ? 'bg-amber-500 text-black' : 'bg-red-600 text-white animate-pulse'}`}>
-            {isTie ? 'Tie Detected' : (game.status === GameStatus.PLAYING ? 'Intel Discussion' : 'Elimination Vote')}
+          <div className={`px-3 py-1.5 rounded-md font-black uppercase tracking-[0.2em] text-[8px] shadow-2xl transition-all 
+            ${game.status === GameStatus.PLAYING ? 'bg-red-600 text-white' : 
+              game.status === GameStatus.DEFENDING ? 'bg-amber-500 text-black' : 'bg-red-600 text-white animate-pulse'}`}>
+            {game.status === GameStatus.PLAYING ? `Round ${game.round}: Intel Discussion` : 
+             game.status === GameStatus.DEFENDING ? 'TIE DETECTED: Defense Phase' : 'Elimination Vote'}
           </div>
           <div className="text-left">
             <p className="text-[7px] text-gray-700 font-black uppercase tracking-[0.4em]">Active Squad</p>
@@ -147,17 +199,29 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
         </div>
         {currentPlayer.is_host && (
           <button onClick={togglePhase} className="w-full md:w-auto bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-lg font-black uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-xl shadow-red-900/40 text-[10px]">
-            {game.status === GameStatus.PLAYING ? 'Execute Vote' : 'Confirm Intel'}
+            {game.status === GameStatus.PLAYING ? 'Execute Vote' : 
+             game.status === GameStatus.DEFENDING ? 'Re-start Voting' : 'Confirm Elimination'}
           </button>
         )}
       </div>
 
       <div className="grid lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8 space-y-6">
-          {game.status === GameStatus.PLAYING && !isSpectator && currentPlayer.is_alive && (
-            <div className={`glass p-5 rounded-lg border-2 transition-all ${ canSeeOthersMessages ? 'border-zinc-800 opacity-50' : 'border-red-600/30 shadow-[0_0_30px_rgba(220,38,38,0.1)]'}`}>
-              <label className="text-[8px] font-black text-gray-500 uppercase tracking-[0.3em] mb-2 block">Transmission Input</label>
-              {canSeeOthersMessages ? (
+          {/* Input Area */}
+          {(game.status === GameStatus.PLAYING || game.status === GameStatus.DEFENDING) && (
+            <div className={`glass p-5 rounded-lg border-2 transition-all 
+              ${!canIInput ? 'border-zinc-800 opacity-50 grayscale' : 'border-red-600/30 shadow-[0_0_30px_rgba(220,38,38,0.1)]'}`}>
+              <label className="text-[8px] font-black text-gray-500 uppercase tracking-[0.3em] mb-2 block">
+                {game.status === GameStatus.DEFENDING ? 'Defense Transmission' : 'Transmission Input'}
+              </label>
+              
+              {!canIInput ? (
+                <div className="py-2 text-zinc-500 italic text-sm flex items-center gap-3">
+                   <span className="bg-zinc-800 border border-white/5 px-4 py-2 rounded inline-block text-xs uppercase tracking-widest">
+                      {game.status === GameStatus.DEFENDING ? (isSpectator ? "Waiting for Suspects..." : "You are safe. Listening...") : "Intel Sync in Progress..."}
+                   </span>
+                </div>
+              ) : canSeeOthersMessages ? (
                  <div className="py-2 text-red-500 font-bold italic text-sm">
                    <span className="bg-red-600/10 border border-red-600/20 px-4 py-2 rounded inline-block animate-[flash_0.6s_ease-out] text-base md:text-lg">
                       {currentPlayer.message || 'Intel Data Sent'}
@@ -171,7 +235,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
                     value={localMessage}
                     onChange={(e) => setLocalMessage(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSubmitMessage()}
-                    placeholder="請輸入你的描述..."
+                    placeholder={game.status === GameStatus.DEFENDING ? "請為自己申冤描述..." : "請輸入你的描述..."}
                     className="flex-1 bg-black border border-white/5 rounded-md px-4 py-2.5 outline-none text-white font-bold transition-all focus:border-red-600/50 text-sm"
                   />
                   <button
@@ -191,6 +255,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
               const voteCount = players.filter(v => v.voted_for === p.id).length;
               const isVotedByMe = currentPlayer.voted_for === p.id;
               const hasSent = (p.message || '').trim().length > 0;
+              const isSuspected = game.suspect_ids?.includes(p.id) || false;
 
               return (
                 <div 
@@ -199,12 +264,21 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
                   className={`group relative overflow-hidden p-6 rounded-md border-2 transition-all duration-300 flex flex-col items-center gap-4
                     ${!p.is_alive ? 'opacity-20 grayscale border-transparent bg-black/40 cursor-not-allowed' : 
                       isVotedByMe ? 'border-red-600 bg-red-600/10 scale-95 shadow-2xl' : 
+                      isSuspected ? 'border-amber-600 bg-amber-600/10 shadow-[0_0_30px_rgba(245,158,11,0.2)]' :
                       game.status === GameStatus.VOTING && !isSpectator ? 'border-white/10 bg-white/5 hover:border-red-600/50 cursor-pointer shadow-lg' : 
                       (p.id === currentPlayer.id ? 'border-red-600/20 bg-red-600/5' : 'border-white/5 bg-white/5')}
                   `}
                 >
+                  {/* Suspect Badge */}
+                  {isSuspected && p.is_alive && (
+                    <div className="absolute top-0 left-0 w-full bg-amber-600 text-black text-[7px] font-black uppercase tracking-[0.4em] py-0.5 text-center shadow-lg animate-pulse">
+                      High Suspect
+                    </div>
+                  )}
+
                   <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-xl md:text-2xl font-black transition-all shadow-inner 
-                    ${p.id === currentPlayer.id ? 'bg-red-600 text-white shadow-red-900/40' : 'bg-zinc-800 text-zinc-500'}
+                    ${p.id === currentPlayer.id ? 'bg-red-600 text-white shadow-red-900/40' : 
+                      isSuspected ? 'bg-amber-600 text-black' : 'bg-zinc-800 text-zinc-500'}
                   `}>
                     {p.name.charAt(0).toUpperCase()}
                   </div>
@@ -245,7 +319,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
           </div>
         </div>
 
-        {/* --- 嚴格鎖定 3:5 比例與對稱邊距修正 --- */}
+        {/* --- 身份卡區域 --- */}
         <div className="lg:col-span-4 space-y-6">
           <div className="p-1 rounded-lg border-2 border-red-600/40 bg-zinc-950 shadow-[0_0_60px_rgba(220,38,38,0.25)] relative group overflow-hidden">
             <div 
@@ -263,12 +337,11 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
                 <span className="text-[8px] font-bold text-gray-800 uppercase tracking-widest text-center leading-relaxed">BIOMETRIC IDENTIFICATION REQ.<br/>LEVEL 4 CLEARANCE</span>
               </div>
               
-              {/* 卡片正面 (身份顯示 - 重新平衡間距) */}
+              {/* 卡片正面 */}
               <div className="absolute inset-0 bg-[#0a0a0a] rounded-lg [transform:rotateY(180deg)] backface-hidden flex flex-col items-center px-6 py-12 justify-between overflow-hidden border border-white/10 shadow-inner">
                 <TacticalCorners color={isSpectator ? 'amber' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'red' : 'cyan')} />
                 <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{backgroundImage: 'linear-gradient(45deg, #fff 1px, transparent 1px), linear-gradient(-45deg, #fff 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
                 
-                {/* 頂部：授權資訊 */}
                 <div className="w-full text-center">
                    <div className="text-[9px] font-black text-gray-700 uppercase tracking-[0.6em] mb-3">Authorization Data</div>
                    <h2 className={`text-xl font-black uppercase tracking-tighter leading-none flex items-center justify-center gap-3 ${isSpectator ? 'text-amber-500' : 'text-red-600'}`}>
@@ -277,13 +350,11 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
                    </h2>
                 </div>
                 
-                {/* 中間：玩家名 */}
                 <div className="w-full space-y-2 text-center bg-white/[0.03] py-5 rounded-md border border-white/5 shadow-inner">
                    <p className="text-[8px] text-gray-700 font-bold uppercase tracking-[0.6em]">Identity Profile</p>
                    <p className="text-2xl font-black text-white leading-none tracking-tight uppercase">{currentPlayer.name}</p>
                 </div>
 
-                {/* 詞彙框：核心詞彙 */}
                 <div className="w-full text-center">
                    <p className="text-[8px] text-gray-700 font-bold uppercase tracking-[0.6em] mb-4">Designated Intel</p>
                    <div className="bg-black border border-red-900/40 rounded-md py-7 flex items-center justify-center shadow-[inset_0_0_30px_rgba(220,38,38,0.2)] mx-1 relative">
@@ -293,7 +364,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
                    </div>
                 </div>
 
-                {/* 底部：身份狀態 */}
                 <div className="w-full text-center">
                    <div className="space-y-1">
                      <p className="text-[8px] text-gray-700 font-bold uppercase tracking-[0.6em] mb-3">Security Status</p>
@@ -301,7 +371,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
                         {isSpectator ? "Observer" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "Undercover" : "Civilian")}
                      </p>
                      <div className={`text-[12px] font-black mt-4 inline-block px-5 py-2 rounded-sm border ${isSpectator ? 'text-amber-500 border-amber-500/30 bg-amber-500/10' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'text-red-600 border-red-600/30 bg-red-600/10' : 'text-cyan-400 border-cyan-400/30 bg-cyan-400/10')}`}>
-                        {isSpectator ? "上帝視角" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "臥底" : "平民")}
+                        {isSpectator ? "上帝視角" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "潛伏" : "平民")}
                      </div>
                    </div>
                 </div>
@@ -315,7 +385,8 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
               <span className={`${isSpectator ? 'text-amber-500' : 'text-red-600'} animate-pulse`}>●</span> Operation Directive
             </h4>
             <p className="text-[10px] text-gray-500 leading-relaxed font-medium italic">
-              {canSeeOthersMessages ? "通訊連線穩定。請分析所有特務的證言，尋找邏輯上的裂縫。" : "通訊鎖定中。請先輸入您的描述以啟動解碼程序。"}
+              {game.status === GameStatus.DEFENDING ? "高票平票警告。請聽取嫌疑人的申冤陳述。" : 
+               canSeeOthersMessages ? "通訊連線穩定。請分析所有特務的證言，尋找邏輯上的裂縫。" : "通訊鎖定中。請先輸入您的描述以啟動解碼程序。"}
             </p>
           </div>
         </div>

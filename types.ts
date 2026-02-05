@@ -1,6 +1,7 @@
 export enum GameStatus {
   LOBBY = 'lobby',
   PLAYING = 'playing',
+  DEFENDING = 'defending', // 新增：平票申冤階段
   VOTING = 'voting',
   FINISHED = 'finished'
 }
@@ -19,7 +20,7 @@ export interface Player {
   is_host: boolean;
   is_alive: boolean;
   voted_for: string | null;
-  message: string | null; // 新增：玩家本輪的描述內容
+  message: string | null;
   created_at: string;
 }
 
@@ -31,5 +32,7 @@ export interface Game {
   undercover_word: string | null;
   winner_team: 'civilian' | 'undercover' | null;
   host_is_player: boolean;
+  suspect_ids: string[] | null; // 新增：平票時的高票嫌疑人 ID 列表
+  round: number; // 新增：目前回合數
   created_at: string;
 }

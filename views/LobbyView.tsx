@@ -72,7 +72,9 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer }) =
       await supabase!.from('games').update({
         status: GameStatus.PLAYING,
         civilian_word: civWord,
-        undercover_word: undWord
+        undercover_word: undWord,
+        round: 1,
+        suspect_ids: null
       }).eq('id', game.id);
 
     } catch (err) {
@@ -82,13 +84,28 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer }) =
     }
   };
 
+  const handleKick = async (playerId: string) => {
+    if (!supabase || !currentPlayer.is_host) return;
+    if (confirm("確定要將該玩家移出房間嗎？")) {
+      await supabase.from('players').delete().eq('id', playerId);
+    }
+  };
+
+  const handleLeave = async () => {
+    if (!supabase) return;
+    if (confirm("確定要退出房間嗎？")) {
+      await supabase.from('players').delete().eq('id', currentPlayer.id);
+      window.location.reload(); // 簡單處理回到首頁
+    }
+  };
+
   const copyCode = () => {
     navigator.clipboard.writeText(game.room_code);
     alert("代碼已複製！");
   };
 
   return (
-    <div className="glass p-5 md:p-10 rounded-2xl shadow-2xl max-w-2xl mx-auto space-y-6 md:space-y-8 animate-in zoom-in duration-300 border border-white/5">
+    <div className="glass p-5 md:p-10 rounded-2xl shadow-2xl max-w-2xl mx-auto space-y-6 md:space-y-8 animate-in zoom-in duration-300 border border-white/5 relative">
       <div className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div className="space-y-1">
           <h2 className="text-2xl md:text-3xl font-black text-white italic tracking-tighter uppercase leading-tight">Briefing Room</h2>
@@ -99,9 +116,14 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer }) =
              <p className="text-gray-500 text-[9px] md:text-[10px] font-bold tracking-widest uppercase">Active Agents: {participantCount}</p>
           </div>
         </div>
-        <div onClick={copyCode} className="w-full md:w-auto cursor-pointer bg-red-600/10 border border-red-500/20 px-4 py-3 rounded-lg text-center group transition-all hover:bg-red-600/20">
-          <p className="text-[8px] text-red-500 font-black uppercase tracking-widest">Access Code</p>
-          <p className="text-xl font-black text-red-500 group-hover:scale-105 transition-transform">{game.room_code}</p>
+        <div className="flex gap-2 w-full md:w-auto">
+          <div onClick={copyCode} className="flex-1 md:flex-none cursor-pointer bg-red-600/10 border border-red-500/20 px-4 py-3 rounded-lg text-center group transition-all hover:bg-red-600/20">
+            <p className="text-[8px] text-red-500 font-black uppercase tracking-widest">Access Code</p>
+            <p className="text-xl font-black text-red-500 group-hover:scale-105 transition-transform">{game.room_code}</p>
+          </div>
+          <button onClick={handleLeave} className="bg-zinc-900 border border-white/5 px-4 py-3 rounded-lg text-[10px] font-black text-zinc-500 uppercase tracking-widest hover:text-white hover:bg-red-900/40 transition-all">
+            Leave
+          </button>
         </div>
       </div>
 
@@ -115,13 +137,13 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer }) =
             <input 
               value={manualCivilian}
               onChange={e => setManualCivilian(e.target.value)}
-              placeholder="平民詞：例如 珍珠奶茶"
+              placeholder="平民詞：例如 自行車"
               className="w-full bg-black/60 border border-white/5 rounded-lg px-4 py-3 text-sm focus:ring-1 focus:ring-amber-500 outline-none text-white font-bold transition-all placeholder:text-zinc-800"
             />
             <input 
               value={manualUndercover}
               onChange={e => setManualUndercover(e.target.value)}
-              placeholder="臥底詞：例如 波霸奶茶"
+              placeholder="臥底詞：例如 電動車"
               className="w-full bg-black/60 border border-white/5 rounded-lg px-4 py-3 text-sm focus:ring-1 focus:ring-amber-500 outline-none text-white font-bold transition-all placeholder:text-zinc-800"
             />
           </div>
@@ -130,7 +152,7 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer }) =
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {host && (
-          <div className={`p-4 rounded-xl border-2 text-center flex flex-col items-center gap-2 transition-all shadow-lg ${!game.host_is_player ? 'bg-amber-500/5 border-amber-500/20' : 'bg-white/5 border-white/10'}`}>
+          <div className={`p-4 rounded-xl border-2 text-center flex flex-col items-center gap-2 transition-all shadow-lg relative ${!game.host_is_player ? 'bg-amber-500/5 border-amber-500/20' : 'bg-white/5 border-white/10'}`}>
             <div className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-lg md:text-xl font-black shadow-inner bg-red-600 text-white shadow-red-900/40`}>
               {host.name.charAt(0).toUpperCase()}
             </div>
@@ -142,7 +164,15 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer }) =
         )}
 
         {players.filter(p => !p.is_host).map((p) => (
-          <div key={p.id} className="bg-white/5 border border-white/10 p-4 rounded-xl text-center flex flex-col items-center gap-2 transition-all hover:border-white/20 shadow-md">
+          <div key={p.id} className="bg-white/5 border border-white/10 p-4 rounded-xl text-center flex flex-col items-center gap-2 transition-all hover:border-white/20 shadow-md group relative">
+            {currentPlayer.is_host && (
+              <button 
+                onClick={() => handleKick(p.id)}
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-red-600 text-white text-[8px] font-black px-2 py-1 rounded transition-all hover:bg-red-500"
+              >
+                KICK
+              </button>
+            )}
             <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-zinc-800 flex items-center justify-center text-lg md:text-xl font-bold text-zinc-400">
               {p.name.charAt(0).toUpperCase()}
             </div>
