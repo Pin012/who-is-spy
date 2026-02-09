@@ -23,7 +23,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   const [sentThisTurn, setSentThisTurn] = useState(false);
   const [showRoundBanner, setShowRoundBanner] = useState(false);
   
-  // 用於追蹤狀態變動以觸發動畫
   const [instructionKey, setInstructionKey] = useState(0);
 
   useEffect(() => {
@@ -35,7 +34,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   }, [game.status, game.round]);
 
   useEffect(() => {
-    // 當狀態或回合改變時，重置 key 以觸發動畫
     setInstructionKey(prev => prev + 1);
     
     if ((game.status === GameStatus.PLAYING || game.status === GameStatus.DEFENDING) && !currentPlayer.message) {
@@ -54,7 +52,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
     return "N/A";
   };
 
-  // 根據字數動態調整字體大小
   const getWordStyle = (word: string) => {
     const len = word?.length || 0;
     if (len > 8) return 'text-2xl tracking-normal';
@@ -151,17 +148,56 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
     }
   };
 
-  const resetGame = async () => {
+  const handleResetWithMode = async (hostIsPlayer: boolean) => {
     if (!supabase || !currentPlayer.is_host) return;
-    await supabase!.from('players').update({ is_alive: true, role: PlayerRole.UNKNOWN, voted_for: null, message: null }).eq('game_id', game.id);
+    // 重置所有玩家為準備狀態
+    await supabase!.from('players').update({ 
+      is_alive: true, 
+      role: PlayerRole.UNKNOWN, 
+      voted_for: null, 
+      message: null 
+    }).eq('id', currentPlayer.id); // 先更新自己
+    
+    await supabase!.from('players').update({ 
+      is_alive: true, 
+      role: PlayerRole.UNKNOWN, 
+      voted_for: null, 
+      message: null 
+    }).eq('game_id', game.id);
+
+    // 重置遊戲資訊，觸發所有人回到大廳
     await supabase!.from('games').update({ 
       status: GameStatus.LOBBY, 
       civilian_word: null, 
       undercover_word: null, 
       round: 0, 
       suspect_ids: null,
-      winner_team: null 
+      winner_team: null,
+      host_is_player: hostIsPlayer
     }).eq('id', game.id);
+  };
+
+  const handleTerminateMission = async () => {
+    if (!supabase || !currentPlayer.is_host) return;
+    if (confirm("確定要徹底終結此房間嗎？所有玩家將退回首頁。")) {
+      // 刪除所有玩家
+      await supabase!.from('players').delete().eq('game_id', game.id);
+      // 刪除遊戲房間
+      await supabase!.from('games').delete().eq('id', game.id);
+      onExit();
+    }
+  };
+
+  const handleExitGame = async () => {
+    if (!supabase) return;
+    if (currentPlayer.is_host) {
+      await handleTerminateMission();
+    } else {
+      if (confirm("確定要退出目前任務嗎？")) {
+        await supabase!.from('players').delete().eq('id', currentPlayer.id);
+        onExit();
+      }
+    }
   };
 
   const isSpectator = !game.host_is_player && currentPlayer.is_host;
@@ -276,10 +312,35 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
            </div>
         </div>
 
-        {currentPlayer.is_host && (
-          <button onClick={resetGame} className="w-full bg-white text-black py-7 rounded-lg font-black transition-all shadow-[0_0_40px_rgba(255,255,255,0.15)] uppercase tracking-[0.4em] text-xl hover:scale-[1.02] active:scale-95 relative z-10 hover:bg-zinc-100">
-            Confirm & Exit Debrief
-          </button>
+        {currentPlayer.is_host ? (
+          <div className="flex flex-col gap-4 w-full relative z-10">
+            <div className="grid grid-cols-2 gap-4">
+              <button 
+                onClick={() => handleResetWithMode(true)}
+                className="bg-red-600 hover:bg-red-500 text-white py-6 rounded-lg font-black transition-all shadow-xl uppercase tracking-widest text-sm active:scale-95 flex flex-col items-center gap-1"
+              >
+                <span>潛伏對決</span>
+                <span className="text-[8px] opacity-60 font-medium">房主加入遊玩</span>
+              </button>
+              <button 
+                onClick={() => handleResetWithMode(false)}
+                className="bg-amber-600 hover:bg-amber-500 text-white py-6 rounded-lg font-black transition-all shadow-xl uppercase tracking-widest text-sm active:scale-95 flex flex-col items-center gap-1"
+              >
+                <span>上帝視角</span>
+                <span className="text-[8px] opacity-60 font-medium">房主觀戰模式</span>
+              </button>
+            </div>
+            <button 
+              onClick={handleTerminateMission}
+              className="bg-white/5 border border-white/10 hover:bg-white/10 text-white py-4 rounded-lg font-black transition-all uppercase tracking-[0.4em] text-xs hover:text-red-500"
+            >
+              終結任務並退出房間
+            </button>
+          </div>
+        ) : (
+          <div className="text-zinc-500 text-xs font-black tracking-widest animate-pulse uppercase">
+             Waiting for Commander's next directive...
+          </div>
         )}
       </div>
     );
@@ -288,7 +349,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   return (
     <div className="space-y-6 animate-in fade-in duration-1000 max-w-7xl mx-auto px-4 pb-20 relative">
       <button 
-        onClick={onExit}
+        onClick={handleExitGame}
         className="fixed top-4 right-4 z-[200] flex items-center gap-3 bg-black/60 backdrop-blur-md border border-white/10 hover:border-red-600/50 text-white px-5 py-2.5 rounded-full transition-all shadow-2xl hover:bg-red-950/20 active:scale-95 group"
         title="退出房間"
       >
@@ -329,7 +390,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
             key={instructionKey}
             className="mt-3 px-2 flex items-start gap-2 relative group overflow-hidden"
           >
-            {/* 動態掃描白光偽元素 */}
             <div className={`absolute inset-0 z-10 pointer-events-none beam-effect`}></div>
             
             <div className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${game.status === GameStatus.DEFENDING ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,1)]' : 'bg-red-500 shadow-[0_0_5px_rgba(220,38,38,1)]'} animate-pulse`}></div>
@@ -494,11 +554,9 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
               <div className="absolute inset-0 bg-[#0a0a0a] rounded-lg [transform:rotateY(180deg)] backface-hidden flex flex-col items-center px-6 py-8 justify-between overflow-hidden border border-white/20 shadow-2xl">
                 <TacticalCorners color={isSpectator ? 'amber' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'red' : 'cyan')} />
                 
-                {/* 機密浮水印 */}
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{backgroundImage: 'linear-gradient(45deg, #fff 1px, transparent 1px), linear-gradient(-45deg, #fff 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
                 <div className="absolute top-20 -left-10 opacity-[0.02] -rotate-45 text-[60px] font-black pointer-events-none whitespace-nowrap">TOP SECRET // CONFIDENTIAL</div>
 
-                {/* 頂部身分點綴 */}
                 <div className="w-full text-center relative z-10 pt-2">
                    <div className="flex items-center justify-center gap-2">
                      <span className={`w-2 h-2 rounded-full ${isSpectator ? 'bg-amber-500' : 'bg-red-600'} animate-pulse shadow-[0_0_10px_rgba(220,38,38,0.5)]`}></span>
@@ -506,13 +564,11 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                    </div>
                 </div>
 
-                {/* 代號區 */}
                 <div className="w-full text-center relative z-10">
                    <p className="text-[8px] text-zinc-600 font-bold uppercase tracking-[0.6em] mb-1">身分代號</p>
                    <p className="text-xl font-black text-zinc-500 leading-none tracking-[0.1em] uppercase">{currentPlayer.name}</p>
                 </div>
 
-                {/* 詞彙區 (視覺核心焦點 - 金色) */}
                 <div className="w-full text-center relative z-10 px-2">
                    <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-[0.7em] mb-3">指派詞彙</p>
                    <div className="bg-black/60 border border-amber-900/30 rounded-xl py-10 flex flex-col items-center justify-center shadow-[inset_0_0_60px_rgba(245,158,11,0.2)] relative overflow-hidden group/intel min-h-[160px]">
@@ -526,7 +582,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                    </div>
                 </div>
 
-                {/* 狀態標籤區 */}
                 <div className="w-full text-center relative z-10 pb-2">
                    <div className="space-y-3">
                      <div className="flex flex-col items-center gap-2">
@@ -568,7 +623,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
           100% { opacity: 1; filter: brightness(1); transform: scale(1); }
         }
         
-        /* 掃描線變文字特效 */
         .beam-effect {
           background: white;
           box-shadow: 0 0 20px 2px white;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Game, Player, GameStatus, PlayerRole } from '../types';
 import { supabase } from '../supabaseClient';
 import { generateWordPair } from '../geminiService';
@@ -21,6 +21,7 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer, onE
   const [manualCivilian, setManualCivilian] = useState('');
   const [manualUndercover, setManualUndercover] = useState('');
   const [starting, setStarting] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   const agents = game.host_is_player 
     ? players 
@@ -29,6 +30,13 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer, onE
   const host = players.find(p => p.is_host);
   const participantCount = agents.length;
   const minRequired = 3;
+
+  useEffect(() => {
+    if (showToast) {
+      const timer = setTimeout(() => setShowToast(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [showToast]);
 
   const handleStart = async () => {
     if (participantCount < minRequired) return alert(`至少需要 ${minRequired} 位特務才能開始遊戲`);
@@ -100,19 +108,31 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer, onE
 
   const handleLeave = async () => {
     if (!supabase) return;
-    if (confirm("確定要退出房間嗎？")) {
-      await supabase.from('players').delete().eq('id', currentPlayer.id);
+    const msg = currentPlayer.is_host ? "關閉房間會終結所有隊員的任務，確定嗎？" : "確定要退出房間嗎？";
+    if (confirm(msg)) {
+      if (currentPlayer.is_host) {
+        // 房主退出，刪除整間房的玩家（觸發 App.tsx 的 hasHost 偵測）
+        await supabase.from('players').delete().eq('game_id', game.id);
+      } else {
+        await supabase.from('players').delete().eq('id', currentPlayer.id);
+      }
       onExit();
     }
   };
 
   const copyCode = () => {
     navigator.clipboard.writeText(game.room_code);
-    alert("代碼已複製！");
+    setShowToast(true);
   };
 
   return (
     <div className="glass p-5 md:p-10 rounded-2xl shadow-2xl max-w-2xl mx-auto space-y-6 md:space-y-8 animate-in zoom-in duration-300 border border-white/5 relative">
+      {showToast && (
+        <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[100] bg-black border border-white/20 text-white px-6 py-2 rounded-full text-[10px] font-black tracking-widest uppercase animate-in fade-in slide-in-from-top-4 duration-300 shadow-[0_0_30px_rgba(0,0,0,0.8)]">
+           Access Code Copied
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div className="space-y-1">
           <h2 className="text-2xl md:text-3xl font-black text-white italic tracking-tighter uppercase leading-tight">Briefing Room</h2>
@@ -129,7 +149,7 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer, onE
             <p className="text-xl font-black text-red-500 group-hover:scale-105 transition-transform">{game.room_code}</p>
           </div>
           <button onClick={handleLeave} className="bg-zinc-900 border border-white/5 px-4 py-3 rounded-lg text-[10px] font-black text-zinc-500 uppercase tracking-widest hover:text-white hover:bg-red-900/40 transition-all">
-            Leave
+            Exit
           </button>
         </div>
       </div>

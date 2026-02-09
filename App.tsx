@@ -16,7 +16,7 @@ const App: React.FC = () => {
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(false);
-  const [isRecovering, setIsRecovering] = useState(true); // 新增：正在恢復連線狀態
+  const [isRecovering, setIsRecovering] = useState(true);
   
   const [isSelectingMode, setIsSelectingMode] = useState(false);
   const [playerName, setPlayerName] = useState('');
@@ -35,7 +35,6 @@ const App: React.FC = () => {
 
       if (storedPlayerId && storedGameId) {
         try {
-          // 檢查玩家是否還在資料庫中
           const { data: playerData, error: pError } = await supabase
             .from('players')
             .select('*')
@@ -44,7 +43,6 @@ const App: React.FC = () => {
 
           if (pError || !playerData) throw new Error("Session expired");
 
-          // 獲取遊戲資訊
           const { data: gameData, error: gError } = await supabase
             .from('games')
             .select('*')
@@ -90,7 +88,11 @@ const App: React.FC = () => {
         table: 'games', 
         filter: `id=eq.${currentGame.id}` 
       }, (payload) => {
-        setCurrentGame(payload.new as Game);
+        if (payload.eventType === 'DELETE') {
+          handleExitGame();
+        } else {
+          setCurrentGame(payload.new as Game);
+        }
       })
       .on('postgres_changes', { 
         event: '*', 
@@ -110,7 +112,6 @@ const App: React.FC = () => {
             return [...prev, newP].sort((a, b) => a.created_at.localeCompare(b.created_at));
           });
         } else if (payload.eventType === 'DELETE') {
-          // 如果刪除的是我自己，回到首頁
           if (payload.old.id === myPlayerId) {
             handleExitGame();
           }
@@ -123,6 +124,16 @@ const App: React.FC = () => {
       supabase!.removeChannel(gameChannel);
     };
   }, [currentGame?.id, myPlayerId]);
+
+  // 核心邏輯：監控玩家清單，如果沒有 Host 了，大家都要離開
+  useEffect(() => {
+    if (currentGame && players.length > 0) {
+      const hasHost = players.some(p => p.is_host);
+      if (!hasHost) {
+        handleExitGame();
+      }
+    }
+  }, [players, currentGame]);
 
   const handleExitGame = () => {
     localStorage.removeItem(STORAGE_KEYS.PLAYER_ID);
@@ -163,7 +174,6 @@ const App: React.FC = () => {
 
       if (playerError) throw playerError;
 
-      // 儲存進度
       localStorage.setItem(STORAGE_KEYS.PLAYER_ID, playerData.id);
       localStorage.setItem(STORAGE_KEYS.GAME_ID, gameId);
 
@@ -244,21 +254,6 @@ const App: React.FC = () => {
       />
     );
   };
-
-  const missingKeys = [];
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) missingKeys.push("NEXT_PUBLIC_SUPABASE_URL");
-  if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) missingKeys.push("NEXT_PUBLIC_SUPABASE_ANON_KEY");
-  if (!process.env.API_KEY) missingKeys.push("API_KEY");
-
-  if (missingKeys.length > 0) {
-    return (
-      <div className="min-h-screen bg-[#0f1115] flex items-center justify-center p-4">
-        <div className="glass p-10 rounded-3xl max-w-lg w-full text-center space-y-6">
-          <h1 className="text-xl font-bold text-white">缺少環境變數: {missingKeys.join(', ')}</h1>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4 selection:bg-red-600/30">
