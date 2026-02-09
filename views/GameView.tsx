@@ -172,7 +172,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
       case GameStatus.PLAYING:
         return (
           <>
-            請特務在以下欄位依次進行情報描述，並找出詞彙異常的嫌疑人。
+            請各位玩家在以下欄位進行情報描述，並找出詞彙異常的嫌疑人。
             <br />
             <span className="text-zinc-300 opacity-90 text-[11px] font-medium leading-loose">
               (注意：您必須先送出自己的描述，才能看見其他玩家的情報內容)
