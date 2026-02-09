@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Game, Player, GameStatus, PlayerRole } from '../types';
 import { supabase } from '../supabaseClient';
 
@@ -15,6 +15,9 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
   const [sendingMessage, setSendingMessage] = useState(false);
   const [sentThisTurn, setSentThisTurn] = useState(false);
   const [showRoundBanner, setShowRoundBanner] = useState(false);
+  
+  // 用於追蹤狀態變動以觸發閃爍動畫
+  const [instructionKey, setInstructionKey] = useState(0);
 
   useEffect(() => {
     if (game.status === GameStatus.PLAYING) {
@@ -25,10 +28,13 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
   }, [game.status, game.round]);
 
   useEffect(() => {
+    // 當狀態或回合改變時，重置 key 以觸發動畫
+    setInstructionKey(prev => prev + 1);
+    
     if ((game.status === GameStatus.PLAYING || game.status === GameStatus.DEFENDING) && !currentPlayer.message) {
       setSentThisTurn(false);
     }
-  }, [game.status, currentPlayer.message]);
+  }, [game.status, game.round, currentPlayer.message]);
 
   useEffect(() => {
     const timer = setTimeout(() => setRevealed(true), 1200);
@@ -160,6 +166,19 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
   const canIInput = !isSpectator && currentPlayer.is_alive && 
     (game.status === GameStatus.PLAYING || (game.status === GameStatus.DEFENDING && isSuspect));
 
+  const getPhaseInstruction = () => {
+    switch (game.status) {
+      case GameStatus.PLAYING:
+        return "請特務依次進行情報描述，找出詞彙異常的嫌疑人。";
+      case GameStatus.DEFENDING:
+        return "偵測到邏輯衝突！請嫌疑人進行最後的防禦性申冤陳述。";
+      case GameStatus.VOTING:
+        return "情報匯總完成。請點擊頭像，標記您認為具備威脅的臥底。";
+      default:
+        return "";
+    }
+  };
+
   const TacticalCorners = ({ color = 'red' }) => (
     <>
       <div className={`absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 ${color === 'red' ? 'border-red-600' : color === 'cyan' ? 'border-cyan-500' : 'border-amber-500'} z-20`}></div>
@@ -233,30 +252,45 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
         <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
           <div className="bg-red-600 text-white px-20 py-10 rotate-[-5deg] shadow-[0_0_100px_rgba(220,38,38,0.6)] border-y-4 border-white animate-in zoom-in fade-in duration-300">
              <p className="text-[10px] font-black tracking-[1em] uppercase mb-2 opacity-80">Tactical Synchronization</p>
-             <h2 className="text-6xl font-black italic tracking-tighter uppercase drop-shadow-lg">Round {game.round}</h2>
+             <h2 className="text-6xl font-black italic tracking-tighter uppercase drop-shadow-lg">第 {game.round} 回合</h2>
              <p className="mt-4 font-black tracking-[0.4em] text-xs">COMMENCE DESCRIPTION</p>
           </div>
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-black/90 backdrop-blur-md p-4 rounded-xl border border-white/15 shadow-[0_10px_40px_rgba(0,0,0,0.5)] relative overflow-hidden">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-black/90 backdrop-blur-md p-5 rounded-xl border border-white/15 shadow-[0_10px_40px_rgba(0,0,0,0.5)] relative overflow-hidden">
         <div className={`absolute top-0 left-0 w-1.5 h-full ${game.status === GameStatus.DEFENDING ? 'bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-pulse' : 'bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.5)]'}`}></div>
-        <div className="flex items-center gap-6">
-          <div className={`px-4 py-2 rounded-md font-black uppercase tracking-[0.2em] text-[10px] shadow-lg transition-all 
-            ${game.status === GameStatus.PLAYING ? 'bg-red-600 text-white shadow-red-500/20' : 
-              game.status === GameStatus.DEFENDING ? 'bg-amber-500 text-black shadow-amber-500/30' : 'bg-red-600 text-white animate-pulse shadow-red-500/40'}`}>
-            {game.status === GameStatus.PLAYING ? `Round ${game.round}: Intel Discussion` : 
-             game.status === GameStatus.DEFENDING ? 'TIE DETECTED: Defense Phase' : 'Elimination Vote'}
+        
+        <div className="flex flex-col gap-1 w-full md:w-auto">
+          <div className="flex items-center gap-6">
+            <div className={`px-4 py-2 rounded-md font-black uppercase tracking-[0.1em] text-[11px] shadow-lg transition-all 
+              ${game.status === GameStatus.PLAYING ? 'bg-red-600 text-white shadow-red-500/20' : 
+                game.status === GameStatus.DEFENDING ? 'bg-amber-500 text-black shadow-amber-500/30' : 'bg-red-600 text-white animate-pulse shadow-red-500/40'}`}>
+              {game.status === GameStatus.PLAYING ? `回合 ${game.round}: 情報描述階段` : 
+               game.status === GameStatus.DEFENDING ? '偵測到平票：最後申冤' : '投票淘汰階段'}
+            </div>
+            <div className="text-left">
+              <p className="text-[8px] text-zinc-500 font-black uppercase tracking-[0.4em]">特務存活</p>
+              <p className="text-white font-black text-2xl leading-none drop-shadow-sm">{alivePlayers.length} / {players.filter(p => game.host_is_player || !p.is_host).length}</p>
+            </div>
           </div>
-          <div className="text-left">
-            <p className="text-[8px] text-zinc-500 font-black uppercase tracking-[0.4em]">Active Squad</p>
-            <p className="text-white font-black text-2xl leading-none drop-shadow-sm">{alivePlayers.length} / {players.filter(p => game.host_is_player || !p.is_host).length}</p>
+          
+          {/* 階段指令說明欄位 (含閃爍效果) */}
+          <div 
+            key={instructionKey}
+            className="mt-3 px-2 flex items-center gap-2 group animate-[pulse-rapid_0.5s_ease-in-out_3]"
+          >
+            <div className={`w-1.5 h-1.5 rounded-full ${game.status === GameStatus.DEFENDING ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,1)]' : 'bg-red-500 shadow-[0_0_5px_rgba(220,38,38,1)]'} animate-pulse`}></div>
+            <p className={`text-[11px] font-bold ${game.status === GameStatus.DEFENDING ? 'text-amber-500/80' : 'text-red-500/80'} tracking-wide leading-none`}>
+              {getPhaseInstruction()}
+            </p>
           </div>
         </div>
+
         {currentPlayer.is_host && (
-          <button onClick={togglePhase} className="w-full md:w-auto bg-red-600 hover:bg-red-500 text-white px-8 py-3 rounded-lg font-black uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-xl shadow-red-900/40 text-xs border border-white/10">
-            {game.status === GameStatus.PLAYING ? 'Execute Vote' : 
-             game.status === GameStatus.DEFENDING ? 'Re-start Voting' : 'Confirm Elimination'}
+          <button onClick={togglePhase} className="w-full md:w-auto bg-red-600 hover:bg-red-500 text-white px-8 py-3.5 rounded-lg font-black uppercase tracking-[0.1em] transition-all hover:scale-105 active:scale-95 shadow-xl shadow-red-900/40 text-xs border border-white/10">
+            {game.status === GameStatus.PLAYING ? '啟動投票階段' : 
+             game.status === GameStatus.DEFENDING ? '重啟投票程序' : '執行淘汰程序'}
           </button>
         )}
       </div>
@@ -273,13 +307,13 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
               {!canIInput ? (
                 <div className="py-2 text-zinc-400 italic text-sm flex items-center gap-3">
                    <span className="bg-zinc-900 border border-white/10 px-6 py-3 rounded-md text-xs uppercase tracking-[0.2em] font-bold shadow-inner">
-                      {game.status === GameStatus.DEFENDING ? "Monitoring Suspect Feed..." : "Intel Sync in Progress..."}
+                      {game.status === GameStatus.DEFENDING ? "監控嫌疑人防禦信號中..." : "情報同步作業中..."}
                    </span>
                 </div>
               ) : canSeeOthersMessages ? (
                  <div className="py-2 text-red-500 font-bold italic text-sm">
                    <span className="bg-red-600/10 border border-red-600/30 px-6 py-4 rounded-md inline-block animate-[flash_0.6s_ease-out] text-base md:text-xl shadow-[0_0_20px_rgba(220,38,38,0.1)]">
-                      {currentPlayer.message || 'Transmission Uplink Ready'}
+                      {currentPlayer.message || '傳輸鏈路已就緒'}
                    </span>
                  </div>
               ) : (
@@ -297,7 +331,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
                     disabled={sendingMessage || !localMessage.trim()}
                     className="bg-red-600 hover:bg-red-500 text-white px-8 py-3.5 rounded-lg font-black uppercase tracking-widest transition-all disabled:opacity-20 text-xs shrink-0 shadow-lg border border-white/10 active:scale-95"
                   >
-                    {sendingMessage ? 'Wait...' : 'Send Intel'}
+                    {sendingMessage ? '處理中...' : '發送描述'}
                   </button>
                 </div>
               )}
@@ -357,7 +391,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
                         ) : (
                           <div className="flex flex-col items-center gap-1.5 opacity-40">
                              <p className="text-[9px] text-zinc-500 font-black uppercase tracking-[0.3em]">
-                               {isSuspected ? 'Awaiting Defense' : 'Pending Feed'}
+                               {isSuspected ? '等待防禦描述' : '等待通訊輸入'}
                              </p>
                              <div className="flex gap-1">
                                 <span className="w-1 h-1 bg-zinc-600 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
@@ -367,7 +401,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
                           </div>
                         )
                       ) : (
-                        <span className="text-[10px] font-black text-zinc-700 uppercase tracking-widest border border-zinc-800 px-3 py-1 rounded">Offline</span>
+                        <span className="text-[10px] font-black text-zinc-700 uppercase tracking-widest border border-zinc-800 px-3 py-1 rounded">離線中</span>
                       )}
                     </div>
                   </div>
@@ -377,7 +411,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
                   {!p.is_alive && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/85 z-30 animate-in fade-in zoom-in duration-300 backdrop-blur-[2px]">
                       <div className="bg-red-700 text-white px-4 py-1.5 text-[12px] font-black uppercase tracking-[0.3em] rotate-[-15deg] shadow-[0_0_40px_rgba(220,38,38,1)] border-2 border-red-400 scale-125">
-                        Eliminated
+                        已被淘汰
                       </div>
                     </div>
                   )}
@@ -418,17 +452,17 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
                    <div className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.7em] mb-4">Authorization Data</div>
                    <h2 className={`text-2xl font-black uppercase tracking-tighter leading-none flex items-center justify-center gap-3 ${isSpectator ? 'text-amber-500' : 'text-red-600'}`}>
                      <span className={`w-2.5 h-2.5 rounded-full ${isSpectator ? 'bg-amber-500' : 'bg-red-600'} animate-pulse shadow-[0_0_10px_rgba(220,38,38,0.5)]`}></span>
-                     {isSpectator ? 'Overseer' : 'Hidden Agenda'}
+                     {isSpectator ? '指揮官視角' : '任務情報'}
                    </h2>
                 </div>
                 
                 <div className="w-full space-y-2 text-center bg-white/[0.04] py-6 rounded-md border border-white/10 shadow-inner relative z-10">
-                   <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.6em]">Profile Metadata</p>
+                   <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.6em]">身分代號</p>
                    <p className="text-3xl font-black text-white leading-none tracking-tight uppercase drop-shadow-sm">{currentPlayer.name}</p>
                 </div>
 
                 <div className="w-full text-center relative z-10">
-                   <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.7em] mb-4">Designated Intel</p>
+                   <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.7em] mb-4">指派詞彙</p>
                    <div className="bg-black border border-red-900/50 rounded-lg py-8 flex items-center justify-center shadow-[inset_0_0_40px_rgba(220,38,38,0.25)] mx-1 relative overflow-hidden group/intel">
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/intel:translate-x-full transition-transform duration-1000"></div>
                       <span className={`text-5xl font-black tracking-[0.2em] drop-shadow-[0_0_20px_rgba(251,191,36,0.3)] ${isSpectator ? 'text-amber-500' : 'text-white'}`}>
@@ -439,13 +473,13 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
 
                 <div className="w-full text-center relative z-10">
                    <div className="space-y-1">
-                     <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.7em] mb-4">Security Status</p>
+                     <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.7em] mb-4">安全狀態</p>
                      <p className={`font-black text-2xl tracking-[0.1em] uppercase leading-none ${isSpectator ? 'text-amber-500' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'text-red-600' : 'text-cyan-400')}`}>
-                        {isSpectator ? "Observer" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "Undercover" : "Civilian")}
+                        {isSpectator ? "Overseer" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "Undercover" : "Civilian")}
                      </p>
-                     {/* 簡化後的標籤：平民、臥底 */}
+                     {/* 標籤：平民、臥底 */}
                      <div className={`text-[15px] font-black mt-5 inline-block px-7 py-2.5 rounded border-2 shadow-lg transition-all ${isSpectator ? 'text-amber-500 border-amber-500/40 bg-amber-500/10 shadow-amber-500/10' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'text-red-600 border-red-600/40 bg-red-600/10 shadow-red-600/10' : 'text-cyan-400 border-cyan-400/40 bg-cyan-400/10 shadow-cyan-400/10')}`}>
-                        {isSpectator ? "上帝視角" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "臥底" : "平民")}
+                        {isSpectator ? "指揮官" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "臥底" : "平民")}
                      </div>
                    </div>
                 </div>
@@ -472,6 +506,10 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
           0% { opacity: 0; filter: brightness(4); transform: scale(1.05); box-shadow: 0 0 50px rgba(220,38,38,0.6); }
           20% { opacity: 1; filter: brightness(2); }
           100% { opacity: 1; filter: brightness(1); transform: scale(1); }
+        }
+        @keyframes pulse-rapid {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; transform: translateX(2px); }
         }
       `}</style>
     </div>

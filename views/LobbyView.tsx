@@ -190,7 +190,7 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer }) =
             ${game.host_is_player ? 'bg-red-600 hover:bg-red-500 text-white shadow-red-900/40' : 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-900/40'}
           `}
         >
-          {starting ? "Initializing..." : (participantCount < minRequired ? `Need ${minRequired - participantCount} more Agents` : "Commence Mission")}
+          {starting ? "Initializing..." : (participantCount < minRequired ? `Need ${minRequired - participantCount} more Agents` : "鎖定玩家並開始遊戲")}
         </button>
       ) : (
         <div className="text-center bg-white/5 p-4 md:p-5 rounded-lg border border-white/5">
