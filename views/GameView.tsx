@@ -15,6 +15,13 @@ const AgentIcon = ({ className = "w-2/3 h-2/3" }: { className?: string }) => (
   </svg>
 );
 
+// 新增：精緻的指紋掃描圖示，用於牌背
+const FingerprintIcon = ({ className = "w-20 h-20" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={`${className} text-red-600/50`}>
+    <path d="M17.81 4.47c-.08 0-.16-.02-.23-.06C15.66 3.42 14 3 12.01 3c-1.98 0-3.86.47-5.57 1.41-.24.13-.54.04-.67-.2-.13-.24-.04-.55.2-.68C7.82 2.51 9.84 2 12.01 2c2.12 0 3.99.47 5.57 1.37.24.13.33.44.2.68-.08.14-.23.22-.39.22zM21 12.03c0-1.14-.32-2.24-.94-3.23-.14-.24-.05-.54.19-.68.24-.14.54-.05.68.19.72 1.15 1.07 2.45 1.07 3.72 0 1.25-.33 2.45-.96 3.55-.14.24-.44.33-.68.19-.24-.14-.33-.44-.19-.68.56-.99.83-2.07.83-3.06zM9.46 9.49c-.13.24-.43.33-.67.2-.24-.13-.33-.43-.2-.67.79-1.46 2.21-2.43 3.82-2.63.28-.04.53.15.57.42.04.28-.15.53-.42.57-1.35.17-2.54.98-3.2 2.21-.13.24-.43.33-.67.2zM12 10.5c-.28 0-.5-.22-.5-.5s.22-.5.5-.5.5.22.5.5-.22.5-.5.5zm7.07 3.53c-.14.24-.44.33-.68.19-.24-.14-.33-.44-.19-.68.32-.55.49-1.15.49-1.74 0-1.28-.68-2.48-1.81-3.2-.24-.15-.31-.46-.16-.7.15-.24.46-.31.7-.16 1.41.9 2.27 2.4 2.27 4.06 0 .73-.2 1.47-.6 2.15z" />
+  </svg>
+);
+
 const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExit }) => {
   const [revealed, setRevealed] = useState(false);
   const [voting, setVoting] = useState(false);
@@ -41,8 +48,9 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
     }
   }, [game.status, game.round, currentPlayer.message]);
 
+  // 1.5秒後自動翻牌導引動畫
   useEffect(() => {
-    const timer = setTimeout(() => setRevealed(true), 1200);
+    const timer = setTimeout(() => setRevealed(true), 1500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -150,13 +158,12 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
 
   const handleResetWithMode = async (hostIsPlayer: boolean) => {
     if (!supabase || !currentPlayer.is_host) return;
-    // 重置所有玩家為準備狀態
     await supabase!.from('players').update({ 
       is_alive: true, 
       role: PlayerRole.UNKNOWN, 
       voted_for: null, 
       message: null 
-    }).eq('id', currentPlayer.id); // 先更新自己
+    }).eq('id', currentPlayer.id);
     
     await supabase!.from('players').update({ 
       is_alive: true, 
@@ -165,7 +172,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
       message: null 
     }).eq('game_id', game.id);
 
-    // 重置遊戲資訊，觸發所有人回到大廳
     await supabase!.from('games').update({ 
       status: GameStatus.LOBBY, 
       civilian_word: null, 
@@ -180,9 +186,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   const handleTerminateMission = async () => {
     if (!supabase || !currentPlayer.is_host) return;
     if (confirm("確定要徹底終結此房間嗎？所有玩家將退回首頁。")) {
-      // 刪除所有玩家
       await supabase!.from('players').delete().eq('game_id', game.id);
-      // 刪除遊戲房間
       await supabase!.from('games').delete().eq('id', game.id);
       onExit();
     }
@@ -255,9 +259,9 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   const TacticalCorners = ({ color = 'red' }) => (
     <>
       <div className={`absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 ${color === 'red' ? 'border-red-600' : color === 'cyan' ? 'border-cyan-500' : 'border-amber-500'} z-20`}></div>
-      <div className={`absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 ${color === 'red' ? 'border-red-600' : color === 'cyan' ? 'border-cyan-500' : 'border-amber-500'} z-20`}></div>
-      <div className={`absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 ${color === 'red' ? 'border-red-600' : color === 'cyan' ? 'border-cyan-500' : 'border-amber-500'} z-20`}></div>
-      <div className={`absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 ${color === 'red' ? 'border-red-600' : color === 'cyan' ? 'border-cyan-500' : 'border-amber-500'} z-20`}></div>
+      <div className={`absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 ${color === 'red' ? 'border-red-600' : color === 'cyan' ? 'border-cyan-500' : color === 'amber' ? 'border-amber-500' : 'border-red-600'} z-20`}></div>
+      <div className={`absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 ${color === 'red' ? 'border-red-600' : color === 'cyan' ? 'border-cyan-500' : color === 'amber' ? 'border-amber-500' : 'border-red-600'} z-20`}></div>
+      <div className={`absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 ${color === 'red' ? 'border-red-600' : color === 'cyan' ? 'border-cyan-500' : color === 'amber' ? 'border-amber-500' : 'border-red-600'} z-20`}></div>
     </>
   );
 
@@ -410,7 +414,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
       <div className="grid lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8 space-y-6">
           {(game.status === GameStatus.PLAYING || game.status === GameStatus.DEFENDING) && (
-            <div className={`glass p-6 rounded-lg border-2 transition-all 
+            <div className={`glass p-6 rounded-xl border-2 transition-all 
               ${!canIInput ? 'border-zinc-800/50 opacity-60 grayscale' : 'border-red-600/40 shadow-[0_0_40px_rgba(220,38,38,0.15)]'}`}>
               <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.4em] mb-3 block">
                 {game.status === GameStatus.DEFENDING ? (isSuspect ? 'Defense Transmission (申冤中)' : 'Monitoring Defense (監聽中)') : 'Transmission Input'}
@@ -533,47 +537,65 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
           </div>
         </div>
 
+        {/* 身分揭露卡片區 - 升級版本 */}
         <div className="lg:col-span-4 space-y-6">
           <div className="p-1 rounded-lg border-2 border-white/10 bg-zinc-950 shadow-[0_0_60px_rgba(0,0,0,0.5)] relative group overflow-hidden">
             <div 
               onClick={() => setRevealed(!revealed)} 
               className={`aspect-[3/5] w-full max-w-[340px] mx-auto rounded-lg cursor-pointer transition-all duration-1000 relative preserve-3d ${revealed ? '[transform:rotateY(180deg)]' : ''}`}
             >
-              <div className="absolute inset-0 bg-[#080808] rounded-lg flex flex-col items-center justify-center border border-white/10 backface-hidden overflow-hidden px-10">
+              
+              {/* 正面：精緻特務牌背 (統一介面，無身分資訊) */}
+              <div className="absolute inset-0 bg-[#0a0a0a] rounded-lg flex flex-col items-center justify-center border border-white/10 backface-hidden overflow-hidden px-10">
                 <TacticalCorners color="red" />
+                
+                {/* 戰術背景效果 */}
                 <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '16px 16px'}}></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-red-600/5 to-transparent"></div>
-                <div className="absolute top-0 left-0 w-full h-1 bg-red-600/20 shadow-[0_0_15px_rgba(220,38,38,0.5)] animate-[scan_3s_linear_infinite] pointer-events-none"></div>
-                <div className="w-24 h-24 bg-red-600/10 rounded-full flex items-center justify-center mb-10 border border-red-600/30 shadow-[0_0_50px_rgba(220,38,38,0.4)] group-hover:scale-110 transition-transform duration-700">
-                  <span className="text-7xl drop-shadow-[0_0_15px_rgba(220,38,38,0.7)]">🕵️</span>
+                
+                {/* 動態紅光掃描線 */}
+                <div className="absolute top-0 left-0 w-full h-1 bg-red-600/30 shadow-[0_0_15px_rgba(220,38,38,0.5)] animate-[scan_3s_linear_infinite] pointer-events-none"></div>
+                
+                {/* 指紋與標籤 */}
+                <div className="relative z-10 flex flex-col items-center">
+                  <FingerprintIcon className="mb-8 drop-shadow-[0_0_15px_rgba(220,38,38,0.4)]" />
+                  <span className="text-[11px] font-black text-red-600 tracking-[0.6em] uppercase mb-2 animate-pulse">Identity Scan</span>
+                  <span className="text-[8px] font-bold text-zinc-700 uppercase tracking-widest text-center leading-relaxed">BIOMETRIC IDENTIFICATION REQ.<br/>ACCESS LEVEL: COMMANDER ONLY</span>
                 </div>
-                <span className="text-[11px] font-black text-white/50 tracking-[1em] uppercase mb-2">Access Card</span>
-                <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest text-center leading-relaxed">BIOMETRIC IDENTIFICATION REQ.<br/>LEVEL 4 CLEARANCE</span>
+
+                {/* 浮水印與型號 */}
+                <div className="absolute top-6 left-6 opacity-5 rotate-[-12deg] text-3xl font-black select-none pointer-events-none">CLASSIFIED</div>
+                <div className="absolute bottom-6 right-6 opacity-5 rotate-[12deg] text-2xl font-black select-none pointer-events-none">CONFIDENTIAL</div>
+
+                <div className="absolute bottom-6 w-full px-8 flex justify-between items-center opacity-20">
+                   <div className="w-8 h-[1px] bg-zinc-500"></div>
+                   <span className="text-[6px] text-zinc-500 font-black tracking-widest uppercase">Spy Card v4.2</span>
+                   <div className="w-8 h-[1px] bg-zinc-500"></div>
+                </div>
               </div>
               
+              {/* 背面：身分揭露 (內容介面) */}
               <div className="absolute inset-0 bg-[#0a0a0a] rounded-lg [transform:rotateY(180deg)] backface-hidden flex flex-col items-center px-6 py-8 justify-between overflow-hidden border border-white/20 shadow-2xl">
                 <TacticalCorners color={isSpectator ? 'amber' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'red' : 'cyan')} />
                 
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{backgroundImage: 'linear-gradient(45deg, #fff 1px, transparent 1px), linear-gradient(-45deg, #fff 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
-                <div className="absolute top-20 -left-10 opacity-[0.02] -rotate-45 text-[60px] font-black pointer-events-none whitespace-nowrap">TOP SECRET // CONFIDENTIAL</div>
-
+                
                 <div className="w-full text-center relative z-10 pt-2">
                    <div className="flex items-center justify-center gap-2">
-                     <span className={`w-2 h-2 rounded-full ${isSpectator ? 'bg-amber-500' : 'bg-red-600'} animate-pulse shadow-[0_0_10px_rgba(220,38,38,0.5)]`}></span>
+                     <span className={`w-2 h-2 rounded-full ${isSpectator ? 'bg-amber-500' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'bg-red-600' : 'bg-cyan-500')} animate-pulse shadow-[0_0_10px_rgba(255,255,255,0.2)]`}></span>
                      <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.5em]">{isSpectator ? 'Overseer' : 'Agent Record'}</span>
                    </div>
                 </div>
 
                 <div className="w-full text-center relative z-10">
                    <p className="text-[8px] text-zinc-600 font-bold uppercase tracking-[0.6em] mb-1">身分代號</p>
-                   <p className="text-xl font-black text-zinc-500 leading-none tracking-[0.1em] uppercase">{currentPlayer.name}</p>
+                   <p className="text-xl font-black text-white leading-none tracking-[0.1em] uppercase">{currentPlayer.name}</p>
                 </div>
 
                 <div className="w-full text-center relative z-10 px-2">
                    <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-[0.7em] mb-3">指派詞彙</p>
                    <div className="bg-black/60 border border-amber-900/30 rounded-xl py-10 flex flex-col items-center justify-center shadow-[inset_0_0_60px_rgba(245,158,11,0.2)] relative overflow-hidden group/intel min-h-[160px]">
                       <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 1px, #f59e0b 1px, #f59e0b 2px)', backgroundSize: '100% 4px'}}></div>
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full group-hover/intel:translate-x-full transition-transform duration-[2.5s]"></div>
                       
                       <span className={`font-black break-words transition-all duration-700 drop-shadow-[0_0_30px_rgba(245,158,11,0.6)] px-4 leading-tight ${getWordStyle(cardWord)} ${isSpectator ? 'text-amber-500' : 'text-amber-400'}`}>
                         {cardWord}
@@ -609,7 +631,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
             </h4>
             <div className="text-xs text-zinc-200 leading-relaxed font-medium italic">
               {game.status === GameStatus.DEFENDING ? "警告：偵測到數據對峙。請嫌疑人進行防禦性傳輸以消除系統威脅..." : 
-               canSeeOthersMessages ? "通訊鏈路解碼中。請交叉比對各特務證言，尋找數據裂縫。" : "鏈路鎖定。請輸入您的特務描述以啟動廣域解碼。"}
+               canSeeOthersMessages ? "通訊鏈路解碼中。請交叉比對各特務證言，尋找數據裂縫。" : "鏈路鎖定。請翻開身分卡，並輸入您的特務描述以啟動廣域解碼。"}
             </div>
           </div>
         </div>
