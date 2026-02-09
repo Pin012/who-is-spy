@@ -174,7 +174,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
           <>
             請特務在以下欄位依次進行情報描述，找出詞彙異常的嫌疑人。
             <br />
-            <span className="opacity-70 text-[11px] font-medium leading-loose">
+            <span className="text-zinc-400 text-[11px] font-medium leading-loose">
               (注意：您必須先送出自己的描述，才能看見其他玩家的情報內容)
             </span>
           </>
@@ -182,10 +182,10 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
       case GameStatus.DEFENDING:
         return (
           <>
-            偵測到邏輯衝突！請嫌疑人進行最後的防禦性申冤陳述。
+            偵測到數據衝突！投票結果持平，請兩位嫌疑人進行最後申冤程序。
             <br />
-            <span className="opacity-70 text-[11px] font-medium leading-loose">
-              (嫌疑人請點擊下方輸入框傳輸申冤內容)
+            <span className="text-zinc-400 text-[11px] font-medium leading-loose">
+              (嫌疑人請點擊下方輸入框傳輸辯解信號)
             </span>
           </>
         );
@@ -194,7 +194,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
           <>
             情報匯總完成。
             <br />
-            <span className="opacity-90">請直接點擊玩家頭像進行投票，標記您認為具備威脅的臥底。</span>
+            <span className="text-zinc-400">請直接點擊玩家頭像進行投票，標記您認為具備威脅的臥底。</span>
           </>
         );
       default:
@@ -298,7 +298,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
               ${game.status === GameStatus.PLAYING ? 'bg-red-600 text-white shadow-red-500/20' : 
                 game.status === GameStatus.DEFENDING ? 'bg-amber-500 text-black shadow-amber-500/30' : 'bg-red-600 text-white animate-pulse shadow-red-500/40'}`}>
               {game.status === GameStatus.PLAYING ? `回合 ${game.round}: 情報描述階段` : 
-               game.status === GameStatus.DEFENDING ? '偵測到平票：最後申冤' : '投票淘汰階段'}
+               game.status === GameStatus.DEFENDING ? '偵測到數據對峙！' : '投票淘汰階段'}
             </div>
             <div className="text-left">
               <p className="text-[8px] text-zinc-500 font-black uppercase tracking-[0.4em]">ACTIVE SQUAD</p>
@@ -314,7 +314,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
             <div className={`absolute inset-0 z-10 pointer-events-none beam-effect`}></div>
             
             <div className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${game.status === GameStatus.DEFENDING ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,1)]' : 'bg-red-500 shadow-[0_0_5px_rgba(220,38,38,1)]'} animate-pulse`}></div>
-            <div className={`text-[12px] md:text-[13px] font-bold ${game.status === GameStatus.DEFENDING ? 'text-amber-500/90' : 'text-red-500/90'} tracking-wide leading-relaxed max-w-[600px] instruction-text`}>
+            <div className={`text-[12px] md:text-[13px] font-bold text-zinc-100 tracking-wide leading-relaxed max-w-[600px] instruction-text`}>
               {getPhaseInstruction()}
             </div>
           </div>
@@ -479,42 +479,48 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{backgroundImage: 'linear-gradient(45deg, #fff 1px, transparent 1px), linear-gradient(-45deg, #fff 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
                 <div className="absolute top-20 -left-10 opacity-[0.02] -rotate-45 text-[60px] font-black pointer-events-none whitespace-nowrap">TOP SECRET // CONFIDENTIAL</div>
 
-                {/* 頂部標註 */}
+                {/* 頂部身分點綴 */}
                 <div className="w-full text-center relative z-10 pt-4">
-                   <div className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.8em] mb-1">Authorization Clearance</div>
-                   <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] italic flex items-center justify-center gap-2">
-                     <span className={`w-1.5 h-1.5 rounded-full ${isSpectator ? 'bg-amber-500' : 'bg-red-600'} animate-pulse`}></span>
-                     {isSpectator ? 'Overseer Node' : 'Deployment File'}
+                   <div className="flex items-center justify-center gap-2">
+                     <span className={`w-2 h-2 rounded-full ${isSpectator ? 'bg-amber-500' : 'bg-red-600'} animate-pulse shadow-[0_0_10px_rgba(220,38,38,0.5)]`}></span>
+                     <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.5em]">{isSpectator ? 'Overseer' : 'Agent Record'}</span>
                    </div>
                 </div>
 
-                {/* 詞彙區 (核心焦點) */}
-                <div className="w-full text-center relative z-10 my-6">
-                   <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-[0.7em] mb-4">Intel Assigned</p>
-                   <div className="bg-black/60 border border-amber-900/30 rounded-xl py-12 flex flex-col items-center justify-center shadow-[inset_0_0_60px_rgba(245,158,11,0.15)] mx-1 relative overflow-hidden group/intel">
-                      {/* 金色動態背景線條 */}
-                      <div className="absolute inset-0 opacity-10 pointer-events-none" style={{backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 1px, #f59e0b 1px, #f59e0b 2px)', backgroundSize: '100% 4px'}}></div>
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/5 to-transparent -translate-x-full group-hover/intel:translate-x-full transition-transform duration-[2s]"></div>
+                {/* 代號區 */}
+                <div className="w-full text-center relative z-10">
+                   <p className="text-[8px] text-zinc-600 font-bold uppercase tracking-[0.6em] mb-1">身分代號</p>
+                   <p className="text-xl font-black text-zinc-500 leading-none tracking-[0.1em] uppercase">{currentPlayer.name}</p>
+                </div>
+
+                {/* 詞彙區 (視覺核心焦點 - 金色) */}
+                <div className="w-full text-center relative z-10">
+                   <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-[0.7em] mb-4">指派詞彙</p>
+                   <div className="bg-black/60 border border-amber-900/30 rounded-xl py-12 flex flex-col items-center justify-center shadow-[inset_0_0_60px_rgba(245,158,11,0.2)] mx-1 relative overflow-hidden group/intel">
+                      <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 1px, #f59e0b 1px, #f59e0b 2px)', backgroundSize: '100% 4px'}}></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full group-hover/intel:translate-x-full transition-transform duration-[2.5s]"></div>
                       
-                      <span className={`text-6xl font-black tracking-[0.2em] transition-all duration-700 drop-shadow-[0_0_25px_rgba(245,158,11,0.5)] ${isSpectator ? 'text-amber-500' : 'text-amber-400'}`}>
+                      <span className={`text-6xl font-black tracking-[0.2em] transition-all duration-700 drop-shadow-[0_0_30px_rgba(245,158,11,0.6)] ${isSpectator ? 'text-amber-500' : 'text-amber-400'}`}>
                         {isSpectator ? "MASTER" : getMyWord()}
                       </span>
-                      <div className="mt-4 w-12 h-1 bg-amber-500/20 rounded-full"></div>
+                      <div className="mt-4 w-12 h-1 bg-amber-500/30 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.4)]"></div>
                    </div>
                 </div>
 
-                {/* 代號區 (次要) */}
-                <div className="w-full text-center relative z-10">
-                   <p className="text-[8px] text-zinc-600 font-bold uppercase tracking-[0.6em] mb-2">Agent ID</p>
-                   <p className="text-lg font-black text-zinc-400 leading-none tracking-[0.1em] uppercase">{currentPlayer.name}</p>
-                </div>
-
-                {/* 狀態區 (次要) */}
+                {/* 狀態標籤區 */}
                 <div className="w-full text-center relative z-10 pb-4">
-                   <div className="space-y-3">
-                     <p className="text-[8px] text-zinc-600 font-bold uppercase tracking-[0.7em] mb-2">Tactical Status</p>
-                     <div className={`text-[12px] font-black inline-block px-6 py-1.5 rounded border transition-all ${isSpectator ? 'text-amber-600 border-amber-900/40 bg-amber-900/10' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'text-red-600 border-red-900/40 bg-red-900/10' : 'text-cyan-600 border-cyan-900/40 bg-cyan-900/10')}`}>
-                        {isSpectator ? "COMMANDER" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "UNDERCOVER" : "CIVILIAN")}
+                   <div className="space-y-4">
+                     <div className="flex flex-col items-center gap-3">
+                        <span className={`text-[12px] font-black uppercase tracking-[0.2em] ${isSpectator ? 'text-amber-500' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'text-red-600' : 'text-cyan-400')}`}>
+                           {isSpectator ? "COMMANDER NODE" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "UNDERCOVER AGENT" : "CIVILIAN ASSET")}
+                        </span>
+                        <div className={`px-10 py-3 rounded-md border-2 shadow-lg font-black text-base md:text-lg tracking-[0.3em] transition-all
+                          ${isSpectator ? 'text-amber-500 border-amber-500/40 bg-amber-500/10' : 
+                            (currentPlayer.role === PlayerRole.UNDERCOVER ? 'text-red-600 border-red-600/40 bg-red-600/10 shadow-red-900/10' : 
+                             'text-cyan-400 border-cyan-400/40 bg-cyan-400/10 shadow-cyan-900/10')}
+                        `}>
+                           {isSpectator ? "指揮官" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "臥底" : "平民")}
+                        </div>
                      </div>
                    </div>
                 </div>
@@ -528,7 +534,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
               <span className={`${isSpectator ? 'text-amber-500' : 'text-red-600'} animate-pulse shadow-[0_0_8px_rgba(220,38,38,0.5)]`}>●</span> Operation Directive
             </h4>
             <div className="text-xs text-zinc-400 leading-relaxed font-medium italic">
-              {game.status === GameStatus.DEFENDING ? "警告：偵測到邏輯衝突。正在解碼嫌疑人的防禦申冤傳輸..." : 
+              {game.status === GameStatus.DEFENDING ? "警告：偵測到數據對峙。請嫌疑人進行防禦性傳輸以消除系統威脅..." : 
                canSeeOthersMessages ? "通訊鏈路解碼中。請交叉比對各特務證言，尋找數據裂縫。" : "鏈路鎖定。請輸入您的特務描述以啟動廣域解碼。"}
             </div>
           </div>
