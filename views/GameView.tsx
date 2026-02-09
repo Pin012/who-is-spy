@@ -48,6 +48,14 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
     return "N/A";
   };
 
+  // 根據字數動態調整字體大小
+  const getWordStyle = (word: string) => {
+    const len = word?.length || 0;
+    if (len > 8) return 'text-2xl tracking-normal';
+    if (len > 5) return 'text-4xl tracking-tight';
+    return 'text-5xl tracking-wide';
+  };
+
   const isSuspect = game.suspect_ids?.includes(currentPlayer.id) || false;
 
   const handleVote = async (targetId: string) => {
@@ -172,7 +180,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
       case GameStatus.PLAYING:
         return (
           <>
-            請各位玩家在以下欄位進行情報描述，並找出詞彙異常的嫌疑人。
+            請特務在以下欄位進行情報描述，並找出詞彙異常的嫌疑人。
             <br />
             <span className="text-zinc-300 opacity-90 text-[11px] font-medium leading-loose">
               (注意：您必須先送出自己的描述，才能看見其他玩家的情報內容)
@@ -210,6 +218,8 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
       <div className={`absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 ${color === 'red' ? 'border-red-600' : color === 'cyan' ? 'border-cyan-500' : 'border-amber-500'} z-20`}></div>
     </>
   );
+
+  const cardWord = isSpectator ? "MASTER" : getMyWord();
 
   if (isGameOver) {
     return (
@@ -411,8 +421,8 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                       {p.is_alive ? (
                         hasSent ? (
                           canSeeOthersMessages ? (
-                            <div className="bg-black/40 border border-white/20 rounded-lg px-4 py-3 w-full animate-[flash_0.8s_ease-out] shadow-inner flex items-center justify-center min-h-[60px] group-hover:border-white/40 transition-colors">
-                               <p className="text-sm md:text-base text-gray-100 font-bold leading-tight break-words text-center italic">
+                            <div className="bg-black/40 border border-white/20 rounded-lg px-4 py-3 w-full animate-[flash_0.8s_ease-out] shadow-inner flex items-center justify-center min-h-[60px] group-hover:border-white/40 transition-colors text-white">
+                               <p className="text-sm md:text-base font-bold leading-tight break-words text-center italic">
                                  "{p.message}"
                                </p>
                             </div>
@@ -475,7 +485,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                 <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest text-center leading-relaxed">BIOMETRIC IDENTIFICATION REQ.<br/>LEVEL 4 CLEARANCE</span>
               </div>
               
-              <div className="absolute inset-0 bg-[#0a0a0a] rounded-lg [transform:rotateY(180deg)] backface-hidden flex flex-col items-center px-6 py-10 justify-between overflow-hidden border border-white/20 shadow-2xl">
+              <div className="absolute inset-0 bg-[#0a0a0a] rounded-lg [transform:rotateY(180deg)] backface-hidden flex flex-col items-center px-6 py-8 justify-between overflow-hidden border border-white/20 shadow-2xl">
                 <TacticalCorners color={isSpectator ? 'amber' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'red' : 'cyan')} />
                 
                 {/* 機密浮水印 */}
@@ -483,7 +493,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                 <div className="absolute top-20 -left-10 opacity-[0.02] -rotate-45 text-[60px] font-black pointer-events-none whitespace-nowrap">TOP SECRET // CONFIDENTIAL</div>
 
                 {/* 頂部身分點綴 */}
-                <div className="w-full text-center relative z-10 pt-4">
+                <div className="w-full text-center relative z-10 pt-2">
                    <div className="flex items-center justify-center gap-2">
                      <span className={`w-2 h-2 rounded-full ${isSpectator ? 'bg-amber-500' : 'bg-red-600'} animate-pulse shadow-[0_0_10px_rgba(220,38,38,0.5)]`}></span>
                      <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.5em]">{isSpectator ? 'Overseer' : 'Agent Record'}</span>
@@ -497,27 +507,27 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                 </div>
 
                 {/* 詞彙區 (視覺核心焦點 - 金色) */}
-                <div className="w-full text-center relative z-10">
-                   <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-[0.7em] mb-4">指派詞彙</p>
-                   <div className="bg-black/60 border border-amber-900/30 rounded-xl py-12 flex flex-col items-center justify-center shadow-[inset_0_0_60px_rgba(245,158,11,0.2)] mx-1 relative overflow-hidden group/intel">
+                <div className="w-full text-center relative z-10 px-2">
+                   <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-[0.7em] mb-3">指派詞彙</p>
+                   <div className="bg-black/60 border border-amber-900/30 rounded-xl py-10 flex flex-col items-center justify-center shadow-[inset_0_0_60px_rgba(245,158,11,0.2)] relative overflow-hidden group/intel min-h-[160px]">
                       <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 1px, #f59e0b 1px, #f59e0b 2px)', backgroundSize: '100% 4px'}}></div>
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full group-hover/intel:translate-x-full transition-transform duration-[2.5s]"></div>
                       
-                      <span className={`text-6xl font-black tracking-[0.2em] transition-all duration-700 drop-shadow-[0_0_30px_rgba(245,158,11,0.6)] ${isSpectator ? 'text-amber-500' : 'text-amber-400'}`}>
-                        {isSpectator ? "MASTER" : getMyWord()}
+                      <span className={`font-black break-words transition-all duration-700 drop-shadow-[0_0_30px_rgba(245,158,11,0.6)] px-4 leading-tight ${getWordStyle(cardWord)} ${isSpectator ? 'text-amber-500' : 'text-amber-400'}`}>
+                        {cardWord}
                       </span>
                       <div className="mt-4 w-12 h-1 bg-amber-500/30 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.4)]"></div>
                    </div>
                 </div>
 
                 {/* 狀態標籤區 */}
-                <div className="w-full text-center relative z-10 pb-4">
-                   <div className="space-y-4">
-                     <div className="flex flex-col items-center gap-3">
-                        <span className={`text-[12px] font-black uppercase tracking-[0.2em] ${isSpectator ? 'text-amber-500' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'text-red-600' : 'text-cyan-400')}`}>
+                <div className="w-full text-center relative z-10 pb-2">
+                   <div className="space-y-3">
+                     <div className="flex flex-col items-center gap-2">
+                        <span className={`text-[11px] font-black uppercase tracking-[0.2em] ${isSpectator ? 'text-amber-500' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'text-red-600' : 'text-cyan-400')}`}>
                            {isSpectator ? "COMMANDER NODE" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "UNDERCOVER AGENT" : "CIVILIAN ASSET")}
                         </span>
-                        <div className={`px-10 py-3 rounded-md border-2 shadow-lg font-black text-base md:text-lg tracking-[0.3em] transition-all
+                        <div className={`px-8 py-2.5 rounded-md border-2 shadow-lg font-black text-sm md:text-base tracking-[0.3em] transition-all
                           ${isSpectator ? 'text-amber-500 border-amber-500/40 bg-amber-500/10' : 
                             (currentPlayer.role === PlayerRole.UNDERCOVER ? 'text-red-600 border-red-600/40 bg-red-600/10 shadow-red-900/10' : 
                              'text-cyan-400 border-cyan-400/40 bg-cyan-400/10 shadow-cyan-900/10')}
