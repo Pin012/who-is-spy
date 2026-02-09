@@ -393,7 +393,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
             <div className={`px-4 py-2 rounded-md font-black uppercase tracking-[0.1em] text-[11px] shadow-lg transition-all 
               ${game.status === GameStatus.PLAYING ? 'bg-red-600 text-white shadow-red-500/20' : 
                 game.status === GameStatus.DEFENDING ? 'bg-amber-500 text-black shadow-amber-500/30' : 'bg-red-600 text-white animate-pulse shadow-red-500/40'}`}>
-              {game.status === GameStatus.PLAYING ? `回合 ${game.round}: 情報描述階段` : 
+              {game.status === GameStatus.PLAYING ? `回合 ${game.round}．情報描述階段` : 
                game.status === GameStatus.DEFENDING ? '偵測到數據衝突！' : '投票淘汰階段'}
             </div>
             <div className="text-left">
