@@ -172,9 +172,9 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
       case GameStatus.PLAYING:
         return (
           <>
-            請特務在以下欄位依次進行情報描述，找出詞彙異常的嫌疑人。
+            請特務在以下欄位依次進行情報描述，並找出詞彙異常的嫌疑人。
             <br />
-            <span className="text-zinc-400 text-[11px] font-medium leading-loose">
+            <span className="text-zinc-300 opacity-90 text-[11px] font-medium leading-loose">
               (注意：您必須先送出自己的描述，才能看見其他玩家的情報內容)
             </span>
           </>
@@ -182,10 +182,10 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
       case GameStatus.DEFENDING:
         return (
           <>
-            偵測到數據衝突！投票結果持平，請兩位嫌疑人進行最後申冤程序。
+            偵測到數據衝突！投票結果持平，請嫌疑人進行最後申冤。
             <br />
-            <span className="text-zinc-400 text-[11px] font-medium leading-loose">
-              (嫌疑人請點擊下方輸入框傳輸辯解信號)
+            <span className="text-zinc-300 opacity-90 text-[11px] font-medium leading-loose">
+              (嫌疑人請點擊下方輸入框傳輸申冤內容)
             </span>
           </>
         );
@@ -194,7 +194,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
           <>
             情報匯總完成。
             <br />
-            <span className="text-zinc-400">請直接點擊玩家頭像進行投票，標記您認為具備威脅的臥底。</span>
+            <span className="text-zinc-300 opacity-90">請直接點擊玩家頭像進行投票，標記您認為具備威脅的臥底。</span>
           </>
         );
       default:
@@ -273,10 +273,13 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
     <div className="space-y-6 animate-in fade-in duration-1000 max-w-7xl mx-auto px-4 pb-20 relative">
       <button 
         onClick={onExit}
-        className="fixed top-4 right-4 z-50 bg-black/50 hover:bg-red-600 text-white p-2 rounded-full transition-all shadow-lg active:scale-95"
-        title="退出遊戲"
+        className="fixed top-4 right-4 z-[200] flex items-center gap-3 bg-black/60 backdrop-blur-md border border-white/10 hover:border-red-600/50 text-white px-5 py-2.5 rounded-full transition-all shadow-2xl hover:bg-red-950/20 active:scale-95 group"
+        title="退出房間"
       >
-        <span className="text-xl">🚪</span>
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-zinc-400 group-hover:text-red-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+        <span className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-300 group-hover:text-white transition-colors">退出房間</span>
       </button>
 
       {showRoundBanner && (
@@ -298,7 +301,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
               ${game.status === GameStatus.PLAYING ? 'bg-red-600 text-white shadow-red-500/20' : 
                 game.status === GameStatus.DEFENDING ? 'bg-amber-500 text-black shadow-amber-500/30' : 'bg-red-600 text-white animate-pulse shadow-red-500/40'}`}>
               {game.status === GameStatus.PLAYING ? `回合 ${game.round}: 情報描述階段` : 
-               game.status === GameStatus.DEFENDING ? '偵測到數據對峙！' : '投票淘汰階段'}
+               game.status === GameStatus.DEFENDING ? '偵測到數據衝突！' : '投票淘汰階段'}
             </div>
             <div className="text-left">
               <p className="text-[8px] text-zinc-500 font-black uppercase tracking-[0.4em]">ACTIVE SQUAD</p>
@@ -314,7 +317,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
             <div className={`absolute inset-0 z-10 pointer-events-none beam-effect`}></div>
             
             <div className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${game.status === GameStatus.DEFENDING ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,1)]' : 'bg-red-500 shadow-[0_0_5px_rgba(220,38,38,1)]'} animate-pulse`}></div>
-            <div className={`text-[12px] md:text-[13px] font-bold text-zinc-100 tracking-wide leading-relaxed max-w-[600px] instruction-text`}>
+            <div className={`text-[12px] md:text-[13px] font-bold text-white tracking-wide leading-relaxed max-w-[600px] instruction-text`}>
               {getPhaseInstruction()}
             </div>
           </div>
@@ -339,13 +342,13 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
               
               {!canIInput ? (
                 <div className="py-2 text-zinc-400 italic text-sm flex items-center gap-3">
-                   <span className="bg-zinc-900 border border-white/10 px-6 py-3 rounded-md text-xs uppercase tracking-[0.2em] font-bold shadow-inner">
+                   <span className="bg-zinc-900 border border-white/10 px-6 py-3 rounded-md text-xs uppercase tracking-[0.2em] font-bold shadow-inner text-white">
                       {game.status === GameStatus.DEFENDING ? "監控嫌疑人防禦信號中..." : "情報同步作業中..."}
                    </span>
                 </div>
               ) : canSeeOthersMessages ? (
                  <div className="py-2 text-red-500 font-bold italic text-sm">
-                   <span className="bg-red-600/10 border border-red-600/30 px-6 py-4 rounded-md inline-block animate-[flash_0.6s_ease-out] text-base md:text-xl shadow-[0_0_20px_rgba(220,38,38,0.1)]">
+                   <span className="bg-red-600/10 border border-red-600/30 px-6 py-4 rounded-md inline-block animate-[flash_0.6s_ease-out] text-base md:text-xl shadow-[0_0_20px_rgba(220,38,38,0.1)] text-white">
                       {currentPlayer.message || '傳輸鏈路已就緒'}
                    </span>
                  </div>
@@ -415,7 +418,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                             </div>
                           ) : (
                             <div className="flex flex-col items-center gap-2">
-                              <div className="text-[8px] font-black text-red-500 uppercase tracking-[0.4em] animate-pulse">Encoded Intel</div>
+                              <div className="text-[8px] font-black text-red-500 uppercase tracking-[0.4em] animate-pulse text-white">Encoded Intel</div>
                               <div className="w-16 h-1 bg-red-600/20 rounded-full overflow-hidden relative">
                                 <div className="absolute inset-0 bg-red-600 animate-[loading_1.5s_infinite]"></div>
                               </div>
@@ -423,18 +426,18 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                           )
                         ) : (
                           <div className="flex flex-col items-center gap-1.5 opacity-40">
-                             <p className="text-[9px] text-zinc-500 font-black uppercase tracking-[0.3em]">
+                             <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em]">
                                {isSuspected ? '等待防禦描述' : '等待通訊輸入'}
                              </p>
                              <div className="flex gap-1">
-                                <span className="w-1 h-1 bg-zinc-600 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                                <span className="w-1 h-1 bg-zinc-600 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                                <span className="w-1 h-1 bg-zinc-600 rounded-full animate-bounce"></span>
+                                <span className="w-1 h-1 bg-zinc-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                                <span className="w-1 h-1 bg-zinc-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                                <span className="w-1 h-1 bg-zinc-400 rounded-full animate-bounce"></span>
                              </div>
                           </div>
                         )
                       ) : (
-                        <span className="text-[10px] font-black text-zinc-700 uppercase tracking-widest border border-zinc-800 px-3 py-1 rounded">離線中</span>
+                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest border border-zinc-800 px-3 py-1 rounded">離線中</span>
                       )}
                     </div>
                   </div>
@@ -528,12 +531,12 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
             </div>
           </div>
           
-          <div className="bg-black/80 border border-white/10 p-5 rounded-lg shadow-2xl relative overflow-hidden">
+          <div className="bg-black/80 border border-white/10 p-5 rounded-lg shadow-2xl relative overflow-hidden text-white">
             <div className={`absolute top-0 left-0 w-1.5 h-full ${isSpectator ? 'bg-amber-600' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'bg-red-600' : 'bg-cyan-600')}`}></div>
             <h4 className="text-white font-black text-[9px] uppercase tracking-[0.4em] mb-3 flex items-center gap-2">
               <span className={`${isSpectator ? 'text-amber-500' : 'text-red-600'} animate-pulse shadow-[0_0_8px_rgba(220,38,38,0.5)]`}>●</span> Operation Directive
             </h4>
-            <div className="text-xs text-zinc-400 leading-relaxed font-medium italic">
+            <div className="text-xs text-zinc-200 leading-relaxed font-medium italic">
               {game.status === GameStatus.DEFENDING ? "警告：偵測到數據對峙。請嫌疑人進行防禦性傳輸以消除系統威脅..." : 
                canSeeOthersMessages ? "通訊鏈路解碼中。請交叉比對各特務證言，尋找數據裂縫。" : "鏈路鎖定。請輸入您的特務描述以啟動廣域解碼。"}
             </div>
