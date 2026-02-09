@@ -55,26 +55,32 @@ const App: React.FC = () => {
 
     const gameChannel = supabase!
       .channel(`game-${currentGame.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'games', filter: `id=eq.${currentGame.id}` }, (payload) => {
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'games', 
+        filter: `id=eq.${currentGame.id}` 
+      }, (payload) => {
         setCurrentGame(payload.new as Game);
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'players' }, (payload) => {
-        // 解決 DELETE 事件不帶篩選欄位的問題：移除伺服器端 filter，改在前端判斷
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'players',
+        filter: `game_id=eq.${currentGame.id}` // 優化：只監聽當前房間的玩家變化
+      }, (payload) => {
         if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
           const newP = payload.new as Player;
-          if (newP.game_id === currentGame.id) {
-            setPlayers(prev => {
-              const idx = prev.findIndex(p => p.id === newP.id);
-              if (idx > -1) {
-                const updated = [...prev];
-                updated[idx] = newP;
-                return updated;
-              }
-              return [...prev, newP].sort((a, b) => a.created_at.localeCompare(b.created_at));
-            });
-          }
+          setPlayers(prev => {
+            const idx = prev.findIndex(p => p.id === newP.id);
+            if (idx > -1) {
+              const updated = [...prev];
+              updated[idx] = newP;
+              return updated;
+            }
+            return [...prev, newP].sort((a, b) => a.created_at.localeCompare(b.created_at));
+          });
         } else if (payload.eventType === 'DELETE') {
-          // DELETE 事件 payload.old 只保證有 id
           setPlayers(prev => prev.filter(p => p.id !== payload.old.id));
         }
       })
@@ -96,6 +102,11 @@ const App: React.FC = () => {
         .single();
       
       if (gameError || !gameData) throw new Error("找不到該房間");
+
+      // 【修正】防止中途加入：如果遊戲狀態不是 LOBBY，且不是房主重新進入，則拒絕加入
+      if (gameData.status !== GameStatus.LOBBY && !isHost) {
+        throw new Error("任務已在進行中，無法中途加入。");
+      }
 
       const { data: playerData, error: playerError } = await supabase
         .from('players')
