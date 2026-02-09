@@ -9,6 +9,12 @@ interface GameViewProps {
   onExit: () => void;
 }
 
+const AgentIcon = ({ className = "w-2/3 h-2/3" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+  </svg>
+);
+
 const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExit }) => {
   const [revealed, setRevealed] = useState(false);
   const [voting, setVoting] = useState(false);
@@ -409,11 +415,11 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     </div>
                   )}
 
-                  <div className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center text-2xl md:text-3xl font-black transition-all shadow-inner border-2
+                  <div className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all shadow-inner border-2 overflow-hidden
                     ${p.id === currentPlayer.id ? 'bg-red-600 text-white border-white/20 shadow-red-900/40' : 
                       isSuspected ? 'bg-amber-600 text-black border-white/20' : 'bg-zinc-900 text-zinc-400 border-white/5'}
                   `}>
-                    {p.name.charAt(0).toUpperCase()}
+                    <AgentIcon />
                   </div>
                   <div className="text-center w-full space-y-3">
                     <p className="text-white font-black text-base md:text-lg leading-tight truncate px-1 uppercase tracking-widest drop-shadow-sm">{p.name}</p>

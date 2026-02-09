@@ -11,6 +11,12 @@ interface LobbyViewProps {
   onExit: () => void;
 }
 
+const AgentIcon = ({ className = "w-2/3 h-2/3" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+  </svg>
+);
+
 const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer, onExit }) => {
   const [manualCivilian, setManualCivilian] = useState('');
   const [manualUndercover, setManualUndercover] = useState('');
@@ -154,8 +160,8 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer, onE
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {host && (
           <div className={`p-4 rounded-xl border-2 text-center flex flex-col items-center gap-2 transition-all shadow-lg relative ${!game.host_is_player ? 'bg-amber-500/5 border-amber-500/20' : 'bg-white/5 border-white/10'}`}>
-            <div className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-lg md:text-xl font-black shadow-inner bg-red-600 text-white shadow-red-900/40`}>
-              {host.name.charAt(0).toUpperCase()}
+            <div className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-inner bg-red-600 text-white shadow-red-900/40 overflow-hidden`}>
+              <AgentIcon />
             </div>
             <span className="text-xs md:text-sm font-black truncate w-full text-gray-100">{host.name}</span>
             <span className={`text-[7px] md:text-[8px] px-2 py-0.5 rounded-full font-black tracking-widest border bg-red-600/20 text-red-500 border-red-500/30`}>
@@ -174,8 +180,8 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer, onE
                 KICK
               </button>
             )}
-            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-zinc-800 flex items-center justify-center text-lg md:text-xl font-bold text-zinc-400">
-              {p.name.charAt(0).toUpperCase()}
+            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 overflow-hidden">
+              <AgentIcon />
             </div>
             <span className="text-xs md:text-sm font-bold truncate w-full text-zinc-300">{p.name}</span>
             <span className="text-[7px] md:text-[8px] bg-zinc-900 text-zinc-600 px-2 py-0.5 rounded-full border border-white/5 font-black tracking-widest uppercase">Agent</span>
