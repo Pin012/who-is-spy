@@ -505,7 +505,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                           canSeeOthersMessages ? (
                             <div className="bg-black/40 border border-white/20 rounded-lg px-4 py-3 w-full animate-[flash_0.8s_ease-out] shadow-inner flex items-center justify-center min-h-[60px] group-hover:border-white/40 transition-colors text-white">
                                <p className="text-sm md:text-base font-bold leading-tight break-words text-center italic">
-                                 "{p.message}"
+                                 {p.message}
                                </p>
                             </div>
                           ) : (
