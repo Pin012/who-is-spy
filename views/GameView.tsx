@@ -169,11 +169,11 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
   const getPhaseInstruction = () => {
     switch (game.status) {
       case GameStatus.PLAYING:
-        return "請特務依次進行情報描述，找出詞彙異常的嫌疑人。";
+        return "請特務依次進行情報描述，找出詞彙異常的嫌疑人。(注意：您必須先送出自己的描述，才能看見其他玩家的情報內容)";
       case GameStatus.DEFENDING:
         return "偵測到邏輯衝突！請嫌疑人進行最後的防禦性申冤陳述。";
       case GameStatus.VOTING:
-        return "情報匯總完成。請點擊頭像，標記您認為具備威脅的臥底。";
+        return "情報匯總完成。請點擊玩家頭像進行投票，標記您認為具備威脅的臥底。";
       default:
         return "";
     }
@@ -267,21 +267,21 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
               ${game.status === GameStatus.PLAYING ? 'bg-red-600 text-white shadow-red-500/20' : 
                 game.status === GameStatus.DEFENDING ? 'bg-amber-500 text-black shadow-amber-500/30' : 'bg-red-600 text-white animate-pulse shadow-red-500/40'}`}>
               {game.status === GameStatus.PLAYING ? `回合 ${game.round}: 情報描述階段` : 
-               game.status === GameStatus.DEFENDING ? '偵測到平票：最後申冤' : '投票淘汰階段'}
+               game.status === GameStatus.DEFENDING ? '偵測到平票：最後申冤' : '啟動投票階段'}
             </div>
             <div className="text-left">
-              <p className="text-[8px] text-zinc-500 font-black uppercase tracking-[0.4em]">特務存活</p>
+              <p className="text-[8px] text-zinc-500 font-black uppercase tracking-[0.4em]">ACTIVE SQUAD</p>
               <p className="text-white font-black text-2xl leading-none drop-shadow-sm">{alivePlayers.length} / {players.filter(p => game.host_is_player || !p.is_host).length}</p>
             </div>
           </div>
           
-          {/* 階段指令說明欄位 (含閃爍效果) */}
+          {/* 階段指令說明欄位 (含信號燈閃爍效果) */}
           <div 
             key={instructionKey}
-            className="mt-3 px-2 flex items-center gap-2 group animate-[pulse-rapid_0.5s_ease-in-out_3]"
+            className="mt-2.5 px-2 flex items-start gap-2 group animate-[pulse-rapid_0.5s_ease-in-out_3]"
           >
-            <div className={`w-1.5 h-1.5 rounded-full ${game.status === GameStatus.DEFENDING ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,1)]' : 'bg-red-500 shadow-[0_0_5px_rgba(220,38,38,1)]'} animate-pulse`}></div>
-            <p className={`text-[11px] font-bold ${game.status === GameStatus.DEFENDING ? 'text-amber-500/80' : 'text-red-500/80'} tracking-wide leading-none`}>
+            <div className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${game.status === GameStatus.DEFENDING ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,1)]' : 'bg-red-500 shadow-[0_0_5px_rgba(220,38,38,1)]'} animate-pulse`}></div>
+            <p className={`text-[12px] md:text-[13px] font-bold ${game.status === GameStatus.DEFENDING ? 'text-amber-500/90' : 'text-red-500/90'} tracking-wide leading-tight max-w-[500px]`}>
               {getPhaseInstruction()}
             </p>
           </div>
@@ -289,7 +289,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
 
         {currentPlayer.is_host && (
           <button onClick={togglePhase} className="w-full md:w-auto bg-red-600 hover:bg-red-500 text-white px-8 py-3.5 rounded-lg font-black uppercase tracking-[0.1em] transition-all hover:scale-105 active:scale-95 shadow-xl shadow-red-900/40 text-xs border border-white/10">
-            {game.status === GameStatus.PLAYING ? '啟動投票階段' : 
+            {game.status === GameStatus.PLAYING ? '投票淘汰階段' : 
              game.status === GameStatus.DEFENDING ? '重啟投票程序' : '執行淘汰程序'}
           </button>
         )}
@@ -509,7 +509,8 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer }) => 
         }
         @keyframes pulse-rapid {
           0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; transform: translateX(2px); }
+          20%, 60% { opacity: 0.1; }
+          40%, 80% { opacity: 1; }
         }
       `}</style>
     </div>
