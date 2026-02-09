@@ -363,10 +363,11 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
         {/* 右側：身分卡 (重點優化) */}
         <div className="lg:col-span-4 order-1 lg:order-2">
           <div className="sticky top-24 space-y-6">
-            <div className="relative group perspective-container w-full max-w-sm mx-auto aspect-[3/4.5]" onClick={() => setRevealed(!revealed)}>
-              <div className={`w-full h-full relative transition-all duration-700 preserve-3d cursor-pointer ${revealed ? 'rotate-y-180' : ''}`}>
+            <div className="group perspective-[1000px] w-full max-w-sm mx-auto aspect-[3/4.5]" onClick={() => setRevealed(!revealed)}>
+              <div className={`relative w-full h-full transition-all duration-700 preserve-3d cursor-pointer ${revealed ? '[transform:rotateY(180deg)]' : ''}`}>
                 
                 {/* --- 卡片背面 (Cover) --- 
+                    位於 0度。未揭露時顯示。
                     完全統一的視覺，無任何個人資訊 
                 */}
                 <div className="absolute inset-0 backface-hidden rounded-2xl overflow-hidden bg-[#0a0a0a] border border-white/10 shadow-2xl">
@@ -398,9 +399,10 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                 </div>
 
                 {/* --- 卡片正面 (Info) --- 
-                    清楚顯示資訊，無鏡像干擾 
+                    位於 180度。揭露時顯示。
+                    預先旋轉180度，這樣當容器旋轉180度時，正面會轉正。
                 */}
-                <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl overflow-hidden bg-[#050505] border border-white/20 shadow-2xl flex flex-col">
+                <div className="absolute inset-0 backface-hidden [transform:rotateY(180deg)] rounded-2xl overflow-hidden bg-[#050505] border border-white/20 shadow-2xl flex flex-col">
                    <div className={`absolute top-0 inset-x-0 h-1.5 ${cardColor === 'red' ? 'bg-red-600' : cardColor === 'cyan' ? 'bg-cyan-400' : 'bg-amber-500'} shadow-[0_0_20px_currentColor]`}></div>
                    <TacticalCorners color={cardColor} />
                    
@@ -448,10 +450,8 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
         </div>
       </div>
       <style>{`
-        .perspective-container { perspective: 1000px; }
         .preserve-3d { transform-style: preserve-3d; }
         .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-        .rotate-y-180 { transform: rotateY(180deg); }
       `}</style>
     </div>
   );
