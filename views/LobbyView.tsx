@@ -8,9 +8,10 @@ interface LobbyViewProps {
   players: Player[];
   currentPlayer: Player;
   onStartGame: () => void;
+  onExit: () => void;
 }
 
-const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer }) => {
+const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer, onExit }) => {
   const [manualCivilian, setManualCivilian] = useState('');
   const [manualUndercover, setManualUndercover] = useState('');
   const [starting, setStarting] = useState(false);
@@ -95,7 +96,7 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer }) =
     if (!supabase) return;
     if (confirm("確定要退出房間嗎？")) {
       await supabase.from('players').delete().eq('id', currentPlayer.id);
-      window.location.reload(); // 簡單處理回到首頁
+      onExit();
     }
   };
 
