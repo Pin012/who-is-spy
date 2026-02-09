@@ -42,9 +42,9 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
     return () => clearTimeout(timer);
   }, []);
 
-  const getMyWord = () => {
-    if (currentPlayer.role === PlayerRole.CIVILIAN) return game.civilian_word;
-    if (currentPlayer.role === PlayerRole.UNDERCOVER) return game.undercover_word;
+  const getMyWord = (): string => {
+    if (currentPlayer.role === PlayerRole.CIVILIAN) return game.civilian_word || "未設定";
+    if (currentPlayer.role === PlayerRole.UNDERCOVER) return game.undercover_word || "未設定";
     return "N/A";
   };
 
@@ -193,7 +193,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
             偵測到數據衝突！投票結果持平，請嫌疑人進行最後申冤。
             <br />
             <span className="text-zinc-300 opacity-90 text-[11px] font-medium leading-loose">
-              (嫌疑人請點擊下方輸入框傳輸申冤內容)
+              (嫌疑人請點擊下方輸入框傳輸辯解信號)
             </span>
           </>
         );
