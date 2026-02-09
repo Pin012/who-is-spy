@@ -646,17 +646,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                </div>
             </div>
           </div>
-          
-          <div className="bg-black/80 border border-white/10 p-5 rounded-lg shadow-2xl relative overflow-hidden text-white">
-            <div className={`absolute top-0 left-0 w-1.5 h-full ${isSpectator ? 'bg-amber-600' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'bg-red-600' : 'bg-cyan-600')}`}></div>
-            <h4 className="text-white font-black text-[9px] uppercase tracking-[0.4em] mb-3 flex items-center gap-2">
-              <span className={`${isSpectator ? 'text-amber-500' : 'text-red-600'} animate-pulse shadow-[0_0_8px_rgba(220,38,38,0.5)]`}>●</span> Operation Directive
-            </h4>
-            <div className="text-xs text-zinc-200 leading-relaxed font-medium italic">
-              {game.status === GameStatus.DEFENDING ? "警告：偵測到數據對峙。請嫌疑人進行防禦性傳輸以消除系統威脅..." : 
-               canSeeOthersMessages ? "通訊鏈路解碼中。請交叉比對各特務證言，尋找數據裂縫。" : "鏈路鎖定。請輸入您的特務描述以啟動廣域解碼。"}
-            </div>
-          </div>
         </div>
       </div>
       <style>{`
