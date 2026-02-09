@@ -9,7 +9,7 @@ interface GameViewProps {
   onExit: () => void;
 }
 
-const AgentIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+const AgentIcon = ({ className = "w-2/3 h-2/3" }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
     <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
   </svg>
@@ -53,7 +53,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   }, [game.status, game.round, currentPlayer.message]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setRevealed(true), 1500);
+    const timer = setTimeout(() => setRevealed(true), 1200);
     return () => clearTimeout(timer);
   }, []);
 
@@ -161,12 +161,13 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
 
   const handleResetWithMode = async (hostIsPlayer: boolean) => {
     if (!supabase || !currentPlayer.is_host) return;
+    // 重置所有玩家為準備狀態
     await supabase!.from('players').update({ 
       is_alive: true, 
       role: PlayerRole.UNKNOWN, 
       voted_for: null, 
       message: null 
-    }).eq('id', currentPlayer.id);
+    }).eq('id', currentPlayer.id); // 先更新自己
     
     await supabase!.from('players').update({ 
       is_alive: true, 
@@ -175,6 +176,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
       message: null 
     }).eq('game_id', game.id);
 
+    // 重置遊戲資訊，觸發所有人回到大廳
     await supabase!.from('games').update({ 
       status: GameStatus.LOBBY, 
       civilian_word: null, 
@@ -189,7 +191,9 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   const handleTerminateMission = async () => {
     if (!supabase || !currentPlayer.is_host) return;
     if (confirm("確定要徹底終結此房間嗎？所有玩家將退回首頁。")) {
+      // 刪除所有玩家
       await supabase!.from('players').delete().eq('game_id', game.id);
+      // 刪除遊戲房間
       await supabase!.from('games').delete().eq('id', game.id);
       onExit();
     }
@@ -224,6 +228,41 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   const canIInput = !isSpectator && currentPlayer.is_alive && 
     (game.status === GameStatus.PLAYING || (game.status === GameStatus.DEFENDING && isSuspect));
 
+  const getPhaseInstruction = () => {
+    switch (game.status) {
+      case GameStatus.PLAYING:
+        return (
+          <>
+            請特務在以下欄位進行情報描述，並找出詞彙異常的嫌疑人。
+            <br />
+            <span className="text-zinc-300 opacity-90 text-[11px] font-medium leading-loose">
+              (注意：您必須先送出自己的描述，才能看見其他玩家的情報內容)
+            </span>
+          </>
+        );
+      case GameStatus.DEFENDING:
+        return (
+          <>
+            偵測到數據衝突！投票結果持平，請嫌疑人進行最後申冤。
+            <br />
+            <span className="text-zinc-300 opacity-90 text-[11px] font-medium leading-loose">
+              (嫌疑人請點擊下方輸入框傳輸辯解信號)
+            </span>
+          </>
+        );
+      case GameStatus.VOTING:
+        return (
+          <>
+            情報匯總完成。
+            <br />
+            <span className="text-zinc-300 opacity-90">請直接點擊玩家頭像進行投票，標記您認為具備威脅的臥底。</span>
+          </>
+        );
+      default:
+        return "";
+    }
+  };
+
   const TacticalCorners = ({ color = 'red' }) => (
     <>
       <div className={`absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 ${color === 'red' ? 'border-red-600' : color === 'cyan' ? 'border-cyan-500' : 'border-amber-500'} z-20`}></div>
@@ -234,7 +273,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   );
 
   const cardWord = isSpectator ? "MASTER" : getMyWord();
-  const cardColor = isSpectator ? 'amber' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'red' : 'cyan');
 
   if (isGameOver) {
     return (
@@ -354,144 +392,159 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                game.status === GameStatus.DEFENDING ? '偵測到數據衝突！' : '投票淘汰階段'}
             </div>
             <div className="text-left">
-              <p className="text-[8px] text-zinc-500 font-black uppercase tracking-[0.4em] mb-1">Current Directive</p>
-              <p className="text-xs font-bold text-zinc-300 truncate">
-                {game.status === GameStatus.PLAYING ? '觀察您的身分詞彙並進行隱晦描述' : 
-                 game.status === GameStatus.VOTING ? '分析情報，投票找出潛伏的臥底' : '請嫌疑人為自己進行最終辯解'}
-              </p>
+              <p className="text-[8px] text-zinc-500 font-black uppercase tracking-[0.4em]">ACTIVE SQUAD</p>
+              <p className="text-white font-black text-2xl leading-none drop-shadow-sm">{alivePlayers.length} / {players.filter(p => game.host_is_player || !p.is_host).length}</p>
+            </div>
+          </div>
+          
+          <div 
+            key={instructionKey}
+            className="mt-3 px-2 flex items-start gap-2 relative group overflow-hidden"
+          >
+            <div className={`absolute inset-0 z-10 pointer-events-none beam-effect`}></div>
+            
+            <div className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${game.status === GameStatus.DEFENDING ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,1)]' : 'bg-red-500 shadow-[0_0_5px_rgba(220,38,38,1)]'} animate-pulse`}></div>
+            <div className={`text-[12px] md:text-[13px] font-bold text-white tracking-wide leading-relaxed max-w-[600px] instruction-text`}>
+              {getPhaseInstruction()}
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
-           {currentPlayer.is_host && (
-             <button onClick={togglePhase} className="flex-1 md:flex-none bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-lg text-xs font-black uppercase tracking-[0.2em] border border-white/10 transition-all active:scale-95">
-               {game.status === GameStatus.PLAYING ? '開始投票' : '結算投票'}
-             </button>
-           )}
-        </div>
+        {currentPlayer.is_host && (
+          <button onClick={togglePhase} className="w-full md:w-auto bg-red-600 hover:bg-red-500 text-white px-8 py-3.5 rounded-lg font-black uppercase tracking-[0.1em] transition-all hover:scale-105 active:scale-95 shadow-xl shadow-red-900/40 text-xs border border-white/10">
+            {game.status === GameStatus.PLAYING ? '啟動投票階段' : 
+             game.status === GameStatus.DEFENDING ? '重啟投票程序' : '執行淘汰程序'}
+          </button>
+        )}
       </div>
 
-      <div className="grid lg:grid-cols-12 gap-8 items-start">
-        {/* 左側：遊戲互動區 */}
-        <div className="lg:col-span-8 space-y-6 order-2 lg:order-1">
-          {/* 輸入框 */}
+      <div className="grid lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8 space-y-6">
           {(game.status === GameStatus.PLAYING || game.status === GameStatus.DEFENDING) && (
-            <div className={`relative p-8 rounded-2xl border transition-all duration-500 overflow-hidden group
-               ${canIInput ? 'bg-black/80 border-red-500/40 shadow-[0_0_50px_rgba(220,38,38,0.1)]' : 'bg-black/40 border-white/5 opacity-60 grayscale'}`}>
-               
-               {!canIInput && <div className="absolute inset-0 z-20 cursor-not-allowed bg-black/20"></div>}
-               
-               {/* Decorative Lines */}
-               <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/20"></div>
-               <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-white/20"></div>
-               <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-white/20"></div>
-               <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-white/20"></div>
-
-               <div className="mb-6 flex justify-between items-end relative z-10">
-                 <label className="text-[10px] font-black text-red-500 uppercase tracking-[0.4em] flex items-center gap-2">
-                   <span className={`w-1.5 h-1.5 rounded-full ${canIInput ? 'bg-red-500 animate-pulse' : 'bg-zinc-700'}`}></span>
-                   Secure Channel
-                 </label>
-                 <span className="text-[8px] font-mono text-zinc-600 uppercase tracking-widest">{currentPlayer.name} // TERMINAL_01</span>
-               </div>
-               
-               {canSeeOthersMessages && hasSendMsg(currentPlayer) ? (
-                  <div className="bg-white/[0.03] border border-white/10 p-6 rounded-xl text-center relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
-                    <p className="text-2xl text-white font-black italic tracking-tight">"{currentPlayer.message}"</p>
-                    <p className="text-[9px] text-zinc-500 mt-3 uppercase tracking-[0.3em] font-bold">Transmission Encrypted & Sent</p>
-                  </div>
-               ) : (
-                  <div className="flex gap-4 relative z-10">
-                    <input 
-                      value={localMessage}
-                      onChange={e => setLocalMessage(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && handleSubmitMessage()}
-                      placeholder={game.status === GameStatus.DEFENDING ? "請輸入申冤內容..." : "輸入您的描述..."}
-                      className="flex-1 bg-black border border-white/10 rounded-xl px-6 py-5 text-white outline-none focus:border-red-600/50 focus:shadow-[0_0_30px_rgba(220,38,38,0.1)] transition-all font-bold placeholder:text-zinc-700 placeholder:uppercase placeholder:text-xs placeholder:tracking-widest"
-                    />
-                    <button 
-                      onClick={handleSubmitMessage}
-                      disabled={sendingMessage || !localMessage.trim()}
-                      className="bg-red-600 hover:bg-red-500 text-white px-10 rounded-xl font-black uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg active:scale-95 text-xs"
-                    >
-                      Transmit
-                    </button>
-                  </div>
-               )}
+            <div className={`glass p-6 rounded-lg border-2 transition-all 
+              ${!canIInput ? 'border-zinc-800/50 opacity-60 grayscale' : 'border-red-600/40 shadow-[0_0_40px_rgba(220,38,38,0.15)]'}`}>
+              <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.4em] mb-3 block">
+                {game.status === GameStatus.DEFENDING ? (isSuspect ? 'Defense Transmission (申冤中)' : 'Monitoring Defense (監聽中)') : 'Transmission Input'}
+              </label>
+              
+              {!canIInput ? (
+                <div className="py-2 text-zinc-400 italic text-sm flex items-center gap-3">
+                   <span className="bg-zinc-900 border border-white/10 px-6 py-3 rounded-md text-xs uppercase tracking-[0.2em] font-bold shadow-inner text-white">
+                      {game.status === GameStatus.DEFENDING ? "監控嫌疑人防禦信號中..." : "情報同步作業中..."}
+                   </span>
+                </div>
+              ) : canSeeOthersMessages ? (
+                 <div className="py-2 text-red-500 font-bold italic text-sm">
+                   <span className="bg-red-600/10 border border-red-600/30 px-6 py-4 rounded-md inline-block animate-[flash_0.6s_ease-out] text-base md:text-xl shadow-[0_0_20px_rgba(220,38,38,0.1)] text-white">
+                      {currentPlayer.message || '傳輸鏈路已就緒'}
+                   </span>
+                 </div>
+              ) : (
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="text"
+                    value={localMessage}
+                    onChange={(e) => setLocalMessage(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSubmitMessage()}
+                    placeholder={game.status === GameStatus.DEFENDING ? "請發表最後的申冤描述..." : "請輸入你的描述..."}
+                    className="flex-1 bg-black/80 border border-white/10 rounded-lg px-5 py-3.5 outline-none text-white font-bold transition-all focus:border-red-600/60 text-base shadow-inner"
+                  />
+                  <button
+                    onClick={handleSubmitMessage}
+                    disabled={sendingMessage || !localMessage.trim()}
+                    className="bg-red-600 hover:bg-red-500 text-white px-8 py-3.5 rounded-lg font-black uppercase tracking-widest transition-all disabled:opacity-20 text-xs shrink-0 shadow-lg border border-white/10 active:scale-95"
+                  >
+                    {sendingMessage ? '處理中...' : '發送描述'}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
-          {/* 玩家列表 */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {players.filter(p => game.host_is_player || !p.is_host).map(p => {
-               const isMe = p.id === currentPlayer.id;
-               const voteCount = players.filter(v => v.voted_for === p.id).length;
-               const isSuspectTarget = game.suspect_ids?.includes(p.id);
-               
-               return (
-                 <div 
-                   key={p.id}
-                   onClick={() => game.status === GameStatus.VOTING && p.is_alive && !isSpectator && handleVote(p.id)}
-                   className={`relative p-5 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-4 overflow-hidden group
-                     ${!p.is_alive ? 'opacity-30 grayscale bg-black border-transparent' : 
-                       currentPlayer.voted_for === p.id ? 'border-red-600 bg-red-950/20 shadow-[0_0_30px_rgba(220,38,38,0.2)]' :
-                       isSuspectTarget ? 'border-amber-500 bg-amber-950/20 shadow-[0_0_30px_rgba(245,158,11,0.2)]' :
-                       'border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/10'}
-                     ${game.status === GameStatus.VOTING && p.is_alive && !isSpectator ? 'cursor-pointer' : ''}
-                   `}
-                 >
-                   {isSuspectTarget && <div className="absolute top-0 inset-x-0 h-1 bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>}
-                   
-                   <div className="relative">
-                     <div className={`w-16 h-16 rounded-full flex items-center justify-center text-zinc-300 bg-[#0a0a0a] border border-white/10 shadow-2xl relative z-10 ${isMe ? 'ring-2 ring-white/20' : ''}`}>
-                        <AgentIcon className="w-8 h-8" />
-                     </div>
-                     {game.status === GameStatus.VOTING && voteCount > 0 && (
-                        <div className="absolute -top-2 -right-2 w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-black border-4 border-[#050505] shadow-lg z-20 animate-in zoom-in duration-300">
-                          {voteCount}
-                        </div>
-                     )}
-                   </div>
-                   
-                   <div className="text-center w-full z-10 space-y-3">
-                      <p className={`text-sm font-black truncate px-2 ${isMe ? 'text-white' : 'text-zinc-400'}`}>{p.name}</p>
-                      
-                      <div className="h-auto min-h-[4rem] flex items-center justify-center w-full">
-                         {p.is_alive ? (
-                           hasSendMsg(p) ? (
-                             canSeeOthersMessages ? (
-                               <div className="w-full relative group/msg">
-                                 <div className="absolute -inset-2 bg-white/5 rounded-lg opacity-0 group-hover/msg:opacity-100 transition-opacity"></div>
-                                 <p className="text-xs font-bold text-zinc-300 italic leading-relaxed break-words relative z-10">"{p.message}"</p>
-                               </div>
-                             ) : (
-                               <div className="flex flex-col items-center gap-1">
-                                 <span className="text-[8px] font-black text-red-500 uppercase tracking-[0.2em] animate-pulse">Signal Locked</span>
-                                 <div className="flex gap-0.5">
-                                   <div className="w-1 h-1 bg-red-600 rounded-full animate-bounce [animation-delay:0ms]"></div>
-                                   <div className="w-1 h-1 bg-red-600 rounded-full animate-bounce [animation-delay:150ms]"></div>
-                                   <div className="w-1 h-1 bg-red-600 rounded-full animate-bounce [animation-delay:300ms]"></div>
-                                 </div>
-                               </div>
-                             )
-                           ) : (
-                             <span className="text-[10px] text-zinc-700 font-bold uppercase tracking-widest">Waiting for input...</span>
-                           )
-                         ) : (
-                           <span className="text-red-700 font-black text-[10px] uppercase tracking-widest border-2 border-red-900/30 px-3 py-1.5 rounded rotate-[-5deg]">Eliminated</span>
-                         )}
+            {players.filter(p => game.host_is_player || !p.is_host).map((p) => {
+              const voteCount = players.filter(v => v.voted_for === p.id).length;
+              const isVotedByMe = currentPlayer.voted_for === p.id;
+              const hasSent = (p.message || '').trim().length > 0;
+              const isSuspected = game.suspect_ids?.includes(p.id) || false;
+
+              return (
+                <div 
+                  key={p.id} 
+                  onClick={() => game.status === GameStatus.VOTING && p.is_alive && !isSpectator && handleVote(p.id)}
+                  className={`group relative overflow-hidden p-6 rounded-md border-2 transition-all duration-300 flex flex-col items-center gap-5
+                    ${!p.is_alive ? 'opacity-20 grayscale border-transparent bg-black/60 cursor-not-allowed' : 
+                      isVotedByMe ? 'border-red-600 bg-red-600/15 scale-95 shadow-[0_0_30px_rgba(220,38,38,0.3)]' : 
+                      isSuspected ? 'border-amber-600 bg-amber-600/10 shadow-[0_0_40px_rgba(245,158,11,0.2)]' :
+                      game.status === GameStatus.VOTING && !isSpectator ? 'border-white/20 bg-white/5 hover:border-red-600/60 cursor-pointer shadow-xl' : 
+                      (p.id === currentPlayer.id ? 'border-red-600/30 bg-red-600/5' : 'border-white/10 bg-white/5 shadow-md')}
+                  `}
+                >
+                  {isSuspected && p.is_alive && (
+                    <div className="absolute top-0 left-0 w-full bg-amber-600 text-black text-[8px] font-black uppercase tracking-[0.5em] py-1 text-center shadow-lg animate-pulse z-20">
+                      High Suspect
+                    </div>
+                  )}
+
+                  <div className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all shadow-inner border-2 overflow-hidden
+                    ${p.id === currentPlayer.id ? 'bg-red-600 text-white border-white/20 shadow-red-900/40' : 
+                      isSuspected ? 'bg-amber-600 text-black border-white/20' : 'bg-zinc-900 text-zinc-400 border-white/5'}
+                  `}>
+                    <AgentIcon />
+                  </div>
+                  <div className="text-center w-full space-y-3">
+                    <p className="text-white font-black text-base md:text-lg leading-tight truncate px-1 uppercase tracking-widest drop-shadow-sm">{p.name}</p>
+                    <div className="h-24 flex items-center justify-center w-full relative">
+                      {p.is_alive ? (
+                        hasSent ? (
+                          canSeeOthersMessages ? (
+                            <div className="bg-black/40 border border-white/20 rounded-lg px-4 py-3 w-full animate-[flash_0.8s_ease-out] shadow-inner flex items-center justify-center min-h-[60px] group-hover:border-white/40 transition-colors text-white">
+                               <p className="text-sm md:text-base font-bold leading-tight break-words text-center italic">
+                                 "{p.message}"
+                               </p>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="text-[8px] font-black text-red-500 uppercase tracking-[0.4em] animate-pulse text-white">Encoded Intel</div>
+                              <div className="w-16 h-1 bg-red-600/20 rounded-full overflow-hidden relative">
+                                <div className="absolute inset-0 bg-red-600 animate-[loading_1.5s_infinite]"></div>
+                              </div>
+                            </div>
+                          )
+                        ) : (
+                          <div className="flex flex-col items-center gap-1.5 opacity-40">
+                             <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em]">
+                               {isSuspected ? '等待防禦描述' : '等待通訊輸入'}
+                             </p>
+                             <div className="flex gap-1">
+                                <span className="w-1 h-1 bg-zinc-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                                <span className="w-1 h-1 bg-zinc-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                                <span className="w-1 h-1 bg-zinc-400 rounded-full animate-bounce"></span>
+                             </div>
+                          </div>
+                        )
+                      ) : (
+                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest border border-zinc-800 px-3 py-1 rounded">離線中</span>
+                      )}
+                    </div>
+                  </div>
+                  {game.status === GameStatus.VOTING && p.is_alive && voteCount > 0 && (
+                    <div className="absolute top-3 right-3 bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-black shadow-[0_0_15px_rgba(220,38,38,0.5)] border-2 border-white/20">{voteCount}</div>
+                  )}
+                  {!p.is_alive && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/85 z-30 animate-in fade-in zoom-in duration-300 backdrop-blur-[2px]">
+                      <div className="bg-red-700 text-white px-4 py-1.5 text-[12px] font-black uppercase tracking-[0.3em] rotate-[-15deg] shadow-[0_0_40px_rgba(220,38,38,1)] border-2 border-red-400 scale-125">
+                        已被淘汰
                       </div>
-                   </div>
-                 </div>
-               );
+                    </div>
+                  )}
+                </div>
+              );
             })}
           </div>
         </div>
 
-        {/* 右側：身分卡 (重寫版) */}
-        <div className="lg:col-span-4 order-1 lg:order-2">
+        <div className="lg:col-span-4 space-y-6">
           <div className="sticky top-24 space-y-8">
             {/* 3D Flip Card Container */}
             <div 
@@ -588,18 +641,58 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                </div>
             </div>
           </div>
+          
+          <div className="bg-black/80 border border-white/10 p-5 rounded-lg shadow-2xl relative overflow-hidden text-white">
+            <div className={`absolute top-0 left-0 w-1.5 h-full ${isSpectator ? 'bg-amber-600' : (currentPlayer.role === PlayerRole.UNDERCOVER ? 'bg-red-600' : 'bg-cyan-600')}`}></div>
+            <h4 className="text-white font-black text-[9px] uppercase tracking-[0.4em] mb-3 flex items-center gap-2">
+              <span className={`${isSpectator ? 'text-amber-500' : 'text-red-600'} animate-pulse shadow-[0_0_8px_rgba(220,38,38,0.5)]`}>●</span> Operation Directive
+            </h4>
+            <div className="text-xs text-zinc-200 leading-relaxed font-medium italic">
+              {game.status === GameStatus.DEFENDING ? "警告：偵測到數據對峙。請嫌疑人進行防禦性傳輸以消除系統威脅..." : 
+               canSeeOthersMessages ? "通訊鏈路解碼中。請交叉比對各特務證言，尋找數據裂縫。" : "鏈路鎖定。請輸入您的特務描述以啟動廣域解碼。"}
+            </div>
+          </div>
         </div>
       </div>
       <style>{`
+        @keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+        @keyframes flash {
+          0% { opacity: 0; filter: brightness(4); transform: scale(1.05); box-shadow: 0 0 50px rgba(220,38,38,0.6); }
+          20% { opacity: 1; filter: brightness(2); }
+          100% { opacity: 1; filter: brightness(1); transform: scale(1); }
+        }
+        
+        .beam-effect {
+          background: white;
+          box-shadow: 0 0 20px 2px white;
+          animation: beam-reveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .instruction-text {
+          animation: text-appear 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes beam-reveal {
+          0% { clip-path: inset(50% 100% 50% 0); opacity: 0; }
+          20% { clip-path: inset(49% 0 49% 0); opacity: 1; height: 2px; }
+          40% { clip-path: inset(49% 0 49% 0); opacity: 1; height: 3px; filter: brightness(2); }
+          60% { clip-path: inset(0 0 0 0); opacity: 0.8; height: 100%; }
+          100% { clip-path: inset(0 0 0 0); opacity: 0; height: 100%; }
+        }
+
+        @keyframes text-appear {
+          0% { opacity: 0; transform: translateY(2px); filter: blur(4px); }
+          40% { opacity: 0; transform: translateY(2px); filter: blur(4px); }
+          70% { opacity: 0.5; transform: translateY(0); filter: blur(2px); }
+          100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+        
         .preserve-3d { transform-style: preserve-3d; }
         .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
       `}</style>
     </div>
   );
 };
-
-function hasSendMsg(p: Player) {
-  return p.message && p.message.trim().length > 0;
-}
 
 export default GameView;
