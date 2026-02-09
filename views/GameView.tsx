@@ -273,6 +273,11 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   );
 
   const cardWord = isSpectator ? "MASTER" : getMyWord();
+  const cardColor = isSpectator 
+    ? 'amber' 
+    : currentPlayer.role === PlayerRole.UNDERCOVER 
+      ? 'red' 
+      : 'cyan';
 
   if (isGameOver) {
     return (
