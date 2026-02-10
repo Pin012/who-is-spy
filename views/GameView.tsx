@@ -220,6 +220,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   
   const canSeeOthersMessages = 
     isSpectator || 
+    !currentPlayer.is_alive || // 修改：被淘汰者可以看到訊息
     sentThisTurn || 
     myMessageOnServer || 
     game.status === GameStatus.DEFENDING || 
@@ -472,6 +473,9 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
               const isVotedByMe = currentPlayer.voted_for === p.id;
               const hasSent = (p.message || '').trim().length > 0;
               const isSuspected = game.suspect_ids?.includes(p.id) || false;
+              
+              const playerRoleText = p.role === PlayerRole.UNDERCOVER ? "臥底" : "平民";
+              const playerWord = p.role === PlayerRole.CIVILIAN ? game.civilian_word : (p.role === PlayerRole.UNDERCOVER ? game.undercover_word : "???");
 
               return (
                 <div 
@@ -485,6 +489,17 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                       (p.id === currentPlayer.id ? 'border-red-600/30 bg-red-600/5' : 'border-white/10 bg-white/5 shadow-md')}
                   `}
                 >
+                  {isSpectator && (
+                     <div className="absolute top-2 left-2 z-40 flex flex-col gap-1 items-start pointer-events-none">
+                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${p.role === PlayerRole.UNDERCOVER ? 'bg-red-600 text-white border-red-400' : 'bg-cyan-600 text-white border-cyan-400'}`}>
+                            {playerRoleText}
+                        </span>
+                        <span className="text-[8px] font-bold text-white bg-black/80 px-1.5 rounded border border-white/10">
+                            {playerWord}
+                        </span>
+                     </div>
+                  )}
+
                   {isSuspected && p.is_alive && (
                     <div className="absolute top-0 left-0 w-full bg-amber-600 text-black text-[8px] font-black uppercase tracking-[0.5em] py-1 text-center shadow-lg animate-pulse z-20">
                       High Suspect
