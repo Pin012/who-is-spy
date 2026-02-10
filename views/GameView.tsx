@@ -614,7 +614,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     WebkitBackfaceVisibility: 'hidden' 
                   }}
                 >
-                   <div className={`absolute top-0 inset-x-0 h-1.5 ${cardColor === 'red' ? 'bg-red-600' : cardColor === 'cyan' ? 'bg-cyan-400' : 'bg-amber-500'} shadow-[0_0_9px_currentColor] opacity-70`}></div>
+                   <div className={`absolute top-0 inset-x-0 h-1.5 ${cardColor === 'red' ? 'bg-red-600 text-red-400' : cardColor === 'cyan' ? 'bg-cyan-400 text-cyan-300' : 'bg-amber-500 text-amber-300'} shadow-[0_0_15px_currentColor]`}></div>
                    
                     {/* Access Card */}
                     <div className="pt-10 text-center relative z-10 px-6">
