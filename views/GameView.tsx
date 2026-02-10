@@ -618,10 +618,10 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                    <div className={`absolute top-0 inset-x-0 h-1.5 ${cardColor === 'red' ? 'bg-red-600' : cardColor === 'cyan' ? 'bg-cyan-400' : 'bg-amber-500'} shadow-[0_0_20px_currentColor]`}></div>
                    
                    {/* Top Info */}
-                   <div className="pt-12 pb-4 text-center space-y-3 relative z-10 px-6">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/5 mb-4">
+                   <div className="pt-6 pb-4 text-center space-y-3 relative z-10 px-6">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/5 mb-3">
                         <span className={`w-1.5 h-1.5 rounded-full ${cardColor === 'red' ? 'bg-red-500' : cardColor === 'cyan' ? 'bg-cyan-400' : 'bg-amber-500'} animate-pulse`}></span>
-                        <p className="text-[8px] font-black text-zinc-400 uppercase tracking-[0.3em]">Access Card</p>
+                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em]">Access Card</p>
                       </div>
                       <p className="text-[9px] text-zinc-500 font-black uppercase tracking-[0.4em] mb-1">PLAYER</p>
                       <h2 className="text-3xl font-black text-white uppercase tracking-wider drop-shadow-lg">{currentPlayer.name}</h2>
