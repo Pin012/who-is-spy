@@ -590,7 +590,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
 
                     {/* Confidential */}
                     <div className="absolute top-24 text-center space-y-2 z-10 w-full">
-                      <h3 className="mx-auto text-3xl font-black text-white/25 tracking-[0.25em] uppercase">
+                      <h3 className="mx-auto text-3xl font-black text-white/25 tracking-[0.1em] uppercase">
                         Confidential
                       </h3>
                       <div className="h-[1px] w-24 bg-white/10 mx-auto"></div>
@@ -603,7 +603,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     </div>
 
                     <div className="absolute bottom-12 w-full text-center space-y-2 z-10">
-                        <div className="h-[1px] w-24 bg-white/10 mx-auto"></div>
                         <div className="text-[8px] text-amber-700 font-black tracking-[0.4em] uppercase space-y-1">
                           <p>DO NOT SHARE THIS INFORMATION</p>
                           <p>DESTROY AFTER READING</p>
