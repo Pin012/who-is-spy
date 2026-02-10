@@ -590,14 +590,14 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
 
                     {/* Stamp */}
                     <div className="relative transform -rotate-12 opacity-90 scale-110">
-                        <div className="absolute inset-0 bg-amber-300/20 blur-2xl rounded-full animate-pulse"></div>
+                        <div className="absolute inset-0 bg-amber-600/20 blur-2xl rounded-full animate-pulse"></div>
                         <SecretStampIcon className="w-48 h-48 text-amber-300 drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]" />
                     </div>
 
                     <div className="absolute bottom-12 text-center space-y-2 z-10">
                         <h3 className="text-3xl font-black text-white/20 tracking-[0.2em] uppercase">Confidential</h3>
                         <div className="h-[1px] w-24 bg-white/10 mx-auto"></div>
-                        <div className="text-[8px] text-amber-400 font-black tracking-[0.4em] uppercase space-y-1">
+                        <div className="text-[8px] text-amber-700 font-black tracking-[0.4em] uppercase space-y-1">
                           <p>DO NOT SHARE THIS INFORMATION</p>
                           <p>DESTROY AFTER READING</p>
                         </div>
