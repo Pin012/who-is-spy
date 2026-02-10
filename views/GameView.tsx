@@ -618,7 +618,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                    <div className={`absolute top-0 inset-x-0 h-1.5 ${cardColor === 'red' ? 'bg-red-600' : cardColor === 'cyan' ? 'bg-cyan-400' : 'bg-amber-500'} shadow-[0_0_20px_currentColor]`}></div>
                    
                     {/* Access Card */}
-                    <div className="pt-10 text-center relative z-10 px-6">
+                    <div className="flex-1 pt-10 text-center relative z-10 px-6">
                       <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/5 mb-4 mx-auto">
                         <span className={`w-1.5 h-1.5 rounded-full ${cardColor === 'red' ? 'bg-red-500' : cardColor === 'cyan' ? 'bg-cyan-400' : 'bg-amber-500'} animate-pulse`}></span>
                         <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em]">Access Card</p>
