@@ -628,13 +628,10 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                    </div>
 
                    {/* Center Word */}
-                   <div className="flex-1 flex flex-col items-center justify-center relative p-8">
-                      <div className="absolute inset-6 bg-white/[0.02] rounded-2xl border border-white/5"></div>
-                      <div className={`relative z-10 text-center transition-all duration-1000 delay-300 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                         <p className="text-[9px] text-zinc-600 font-black uppercase tracking-[0.5em] mb-6">Your Codeword</p>
-                         <p className={`font-black break-words leading-none drop-shadow-2xl ${getWordStyle(cardWord)} ${cardColor === 'red' ? 'text-red-500' : cardColor === 'cyan' ? 'text-cyan-400' : 'text-amber-500'}`}>
-                            {cardWord}
-                         </p>
+                   <div className="py-6 flex flex-col items-center relative px-6">
+                    <p className="text-[9px] text-zinc-600 font-black uppercase tracking-[0.5em] mb-3">Your Codeword</p>
+                      <div className={`px-6 py-4 rounded-xl border text-center shadow-inner ${cardColor === 'red' ? 'border-red-500/40 bg-red-500/5 shadow-red-900/30' : cardColor === 'cyan' ? 'border-cyan-400/40 bg-cyan-400/5 shadow-cyan-900/30' : 'border-amber-400/40 bg-amber-400/5 shadow-amber-900/30'}`}>
+                      <p className={`font-black break-words leading-tight drop-shadow-xl ${getWordStyle(cardWord)} ${cardColor === 'red' ? 'text-red-500' : cardColor === 'cyan' ? 'text-cyan-400' : 'text-amber-500'}`}>{cardWord}</p>
                       </div>
                    </div>
 
