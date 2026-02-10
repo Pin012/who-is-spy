@@ -643,8 +643,8 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                              {isSpectator
                                 ? <span className="text-[10px] opacity-60">COMMANDER</span></span><span className="flex flex-col items-center text-zinc-300"><span>指揮官</span>
                                 : currentPlayer.role === PlayerRole.UNDERCOVER
-                                  ? <span className="text-[10px] opacity-60">UNDERCOVER</span></span><span className="flex flex-col items-center text-red-500"><span>臥底</span>
-                                  : <span className="text-[10px] opacity-60">CIVILIAN</span></span><span className="flex flex-col items-center text-cyan-400"><span>平民</span>
+                                  ? <span className="text-[10px] opacity-60">UNDERCOVER</span><span className="flex flex-col items-center text-red-500"><span>臥底</span>
+                                  : <span className="text-[10px] opacity-60">CIVILIAN</span><span className="flex flex-col items-center text-cyan-400"><span>平民</span>
                               }
                       </div>
                    </div>
