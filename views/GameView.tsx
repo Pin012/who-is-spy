@@ -654,7 +654,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
             <div className="text-center">
                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/5">
                  <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.3em] animate-pulse">
-                    {revealed ? "點擊隱藏身分" : "點擊顯示身分"}
+                    {revealed ? "點擊以隱藏身分" : "點擊以顯示身分"}
                  </p>
                </div>
             </div>
