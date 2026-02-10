@@ -644,7 +644,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                            cardColor === 'cyan' ? 'border-cyan-900/40 bg-cyan-900/10 text-cyan-400 shadow-cyan-900/20' : 
                            'border-amber-900/40 bg-amber-900/10 text-amber-500 shadow-amber-900/20'}
                       `}>
-                         {isSpectator ? "指揮官" : (currentPlayer.role === PlayerRole.UNDERCOVER ? "臥底" : "平民")}
+                         {isSpectator ? <span className="flex flex-col items-center"><span>指揮官</span><span className="text-[10px] opacity-60 tracking-[0.3em]">COMMANDER</span></span> : currentPlayer.role === PlayerRole.UNDERCOVER ? <span className="flex flex-col items-center"><span>臥底</span><span className="text-[10px] opacity-60 tracking-[0.3em]">UNDERCOVER</span></span> : <span className="flex flex-col items-center"><span>平民</span><span className="text-[10px] opacity-60 tracking-[0.3em]">CIVILIAN</span></span>}
                       </div>
                    </div>
                 </div>
