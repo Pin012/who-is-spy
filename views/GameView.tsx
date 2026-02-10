@@ -631,17 +631,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                       <h2 className="text-3xl font-black text-white uppercase tracking-wider drop-shadow-lg">{currentPlayer.name}</h2>
                     </div>
 
-                   <div className="pt-10 pb-6 text-center space-y-3 relative z-10 px-6 flex flex-col justify-end">
-                      <div className="flex-1 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/5 mb-3 mx-auto">
-                        <span className={`w-1.5 h-1.5 rounded-full ${cardColor === 'red' ? 'bg-red-500' : cardColor === 'cyan' ? 'bg-cyan-400' : 'bg-amber-500'} animate-pulse`}></span>
-                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em]">Access Card</p>
-                      </div>
-                      <p className="mt-3 text-[9px] text-zinc-500 font-black uppercase tracking-[0.4em] mb-1">PLAYER</p>
-                      <h2 className="text-3xl font-black text-white uppercase tracking-wider drop-shadow-lg">{currentPlayer.name}</h2>
-                   </div>
-
-
-                   {/* Center Word */}
+                   {/* KeyWord */}
                    <div className="py-6 flex flex-col items-center justify-center relative px-6">
                     <p className="text-[9px] text-zinc-600 font-black uppercase tracking-[0.5em] mb-3">Your Codeword</p>
                       <div className={`w-full max-w-[280px] px-6 py-6 rounded-xl border text-center shadow-inner ${cardColor === 'red' ? 'border-red-500/40 bg-red-500/5 shadow-red-900/30' : cardColor === 'cyan' ? 'border-cyan-400/40 bg-cyan-400/5 shadow-cyan-900/30' : 'border-amber-400/40 bg-amber-400/5 shadow-amber-900/30'}`}>
