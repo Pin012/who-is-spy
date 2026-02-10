@@ -630,7 +630,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                    {/* Center Word */}
                    <div className="py-6 flex flex-col items-center relative px-6">
                     <p className="text-[9px] text-zinc-600 font-black uppercase tracking-[0.5em] mb-3">Your Codeword</p>
-                      <div className={`px-6 py-4 rounded-xl border text-center shadow-inner ${cardColor === 'red' ? 'border-red-500/40 bg-red-500/5 shadow-red-900/30' : cardColor === 'cyan' ? 'border-cyan-400/40 bg-cyan-400/5 shadow-cyan-900/30' : 'border-amber-400/40 bg-amber-400/5 shadow-amber-900/30'}`}>
+                      <div className={`w-full max-w-[280px] px-6 py-6 rounded-xl border text-center shadow-inner ${cardColor === 'red' ? 'border-red-500/40 bg-red-500/5 shadow-red-900/30' : cardColor === 'cyan' ? 'border-cyan-400/40 bg-cyan-400/5 shadow-cyan-900/30' : 'border-amber-400/40 bg-amber-400/5 shadow-amber-900/30'}`}>
                       <p className={`font-black break-words leading-tight drop-shadow-xl ${getWordStyle(cardWord)} ${cardColor === 'red' ? 'text-red-500' : cardColor === 'cyan' ? 'text-cyan-400' : 'text-amber-500'}`}>{cardWord}</p>
                       </div>
                    </div>
@@ -638,12 +638,14 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                    {/* Bottom Role */}
                    <div className="pb-12 pt-4 text-center relative z-10 px-8">
                     <p className="mb-2 text-[9px] text-zinc-500 font-black uppercase tracking-[0.4em]">MISSION ROLE</p>
-                      <div className={`block w-full py-4 rounded-xl border-2 font-black text-sm uppercase tracking-[0.4em] shadow-lg transition-all
-                         ${cardColor === 'red' ? 'border-red-900/40 bg-red-900/10 text-red-500 shadow-red-900/20' : 
-                           cardColor === 'cyan' ? 'border-cyan-900/40 bg-cyan-900/10 text-cyan-400 shadow-cyan-900/20' : 
-                           'border-amber-900/40 bg-amber-900/10 text-amber-500 shadow-amber-900/20'}
-                      `}>
-                         {isSpectator ? <span className="flex flex-col items-center"><span>指揮官</span><span className="text-[10px] opacity-60 tracking-[0.3em]">COMMANDER</span></span> : currentPlayer.role === PlayerRole.UNDERCOVER ? <span className="flex flex-col items-center"><span>臥底</span><span className="text-[10px] opacity-60 tracking-[0.3em]">UNDERCOVER</span></span> : <span className="flex flex-col items-center"><span>平民</span><span className="text-[10px] opacity-60 tracking-[0.3em]">CIVILIAN</span></span>}
+                      <div className={`w-full h-[1px] mb-4  ${cardColor === 'red' ? 'bg-red-500/40' : cardColor === 'cyan' ? 'bg-cyan-400/40' : 'bg-amber-400/40'}`}></div>
+                      <div className="font-black text-sm uppercase tracking-[0.4em]">
+                             {isSpectator
+                                ? <span className="flex flex-col items-center text-zinc-300"><span>指揮官</span><span className="text-[10px] opacity-60">COMMANDER</span></span>
+                                : currentPlayer.role === PlayerRole.UNDERCOVER
+                                  ? <span className="flex flex-col items-center text-red-500"><span>臥底</span><span className="text-[10px] opacity-60">UNDERCOVER</span></span>
+                                  : <span className="flex flex-col items-center text-cyan-400"><span>平民</span><span className="text-[10px] opacity-60">CIVILIAN</span></span>
+                              }
                       </div>
                    </div>
                 </div>
