@@ -608,7 +608,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
 
                 {/* FRONT FACE (Info) - Visible when flipped (180deg) */}
                 <div 
-                  className="absolute inset-0 backface-hidden bg-[#080808] rounded-3xl border border-white/20 shadow-2xl overflow-hidden flex flex-col"
+                  className={`absolute inset-0 backface-hidden bg-[#080808] rounded-3xl border border-white/10 overflow-hidden flex flex-col ${cardColor === 'red' ? 'shadow-[0_0_0_1px_rgba(220,38,38,0.15),0_0_24px_rgba(220,38,38,0.12)]' : cardColor === 'cyan' ? 'shadow-[0_0_0_1px_rgba(34,211,238,0.15),0_0_24px_rgba(34,211,238,0.12)]' : 'shadow-[0_0_0_1px_rgba(245,158,11,0.15),0_0_24px_rgba(245,158,11,0.12)]'}`}
                   style={{ 
                     transform: 'rotateY(180deg)', 
                     backfaceVisibility: 'hidden', 
