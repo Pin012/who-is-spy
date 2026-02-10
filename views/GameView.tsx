@@ -640,12 +640,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     <p className="mb-2 text-[9px] text-zinc-500 font-black uppercase tracking-[0.4em]">MISSION ROLE</p>
                       <div className={`w-full h-[1px] mb-4  ${cardColor === 'red' ? 'bg-red-500/40' : cardColor === 'cyan' ? 'bg-cyan-400/40' : 'bg-amber-400/40'}`}></div>
                       <div className="font-black text-sm uppercase tracking-[0.4em]">
-                             {isSpectator
-                                ? <span className="text-[10px] opacity-60">COMMANDER</span></span><span className="flex flex-col items-center text-zinc-300"><span>指揮官</span>
-                                : currentPlayer.role === PlayerRole.UNDERCOVER
-                                  ? <span className="text-[10px] opacity-60">UNDERCOVER</span><span className="flex flex-col items-center text-red-500">臥底</span>
-                                  : <span className="text-[10px] opacity-60">CIVILIAN</span><span className="flex flex-col items-center text-cyan-400">平民</span>
-                              }
+                             {isSpectator ? <div className="flex flex-col items-center text-zinc-300"><span className="text-[10px] opacity-60">COMMANDER</span><span>指揮官</span></div> : currentPlayer.role === PlayerRole.UNDERCOVER ? <div className="flex flex-col items-center text-red-500"><span className="text-[10px] opacity-60">UNDERCOVER</span><span>臥底</span></div> : <div className="flex flex-col items-center text-cyan-400"><span className="text-[10px] opacity-60">CIVILIAN</span><span>平民</span></div>}
                       </div>
                    </div>
                 </div>
