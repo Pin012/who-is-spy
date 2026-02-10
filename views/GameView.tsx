@@ -18,11 +18,10 @@ const AgentIcon = ({ className = "w-2/3 h-2/3" }: { className?: string }) => (
 const SecretStampIcon = ({ className = "w-32 h-32" }: { className?: string }) => (
   <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" className={className}>
     <circle cx="50" cy="50" r="45" strokeWidth="1.6" strokeDasharray="3 2" opacity="0.8" />
-    <circle cx="50" cy="50" r="40" strokeWidth="0.6" opacity="0.7" />
-    <path d="M20 50h60" strokeWidth="1" opacity="0.3" />
+    <circle cx="50" cy="50" r="40" strokeWidth="0.6" opacity="0.5" />
+    <path d="M20 50h60M50 20v60" strokeWidth="1.2" opacity="0.35" />
     <text x="50" y="52" fontFamily="Oswald" fontSize="10" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none">TOP SECRET</text>
-    <text x="50" y="65" fontFamily="Oswald" fontSize="6" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none" opacity="0.8">CLASSIFIED</text>
-    <path d="M30 30L70 70M70 30L30 70" strokeWidth="1" opacity="0.4" />
+    <text x="50" y="65" fontFamily="Oswald" fontSize="6" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none" opacity="0.85">CLASSIFIED</text>
   </svg>
 );
 
