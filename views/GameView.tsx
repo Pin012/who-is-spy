@@ -626,6 +626,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                       <p className="mt-3 text-[9px] text-zinc-500 font-black uppercase tracking-[0.4em] mb-1">PLAYER</p>
                       <h2 className="text-3xl font-black text-white uppercase tracking-wider drop-shadow-lg">{currentPlayer.name}</h2>
                    </div>
+                   <div className="flex-1"></div>
 
                    {/* Center Word */}
                    <div className="py-6 flex flex-col items-center relative px-6">
@@ -634,6 +635,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                       <p className={`font-black break-words leading-tight drop-shadow-xl ${getWordStyle(cardWord)} ${cardColor === 'red' ? 'text-red-500' : cardColor === 'cyan' ? 'text-cyan-400' : 'text-amber-500'}`}>{cardWord}</p>
                       </div>
                    </div>
+                   <div className="flex-1"></div>
 
                    {/* Bottom Role */}
                    <div className="pb-12 pt-4 text-center relative z-10 px-8">
