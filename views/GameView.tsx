@@ -491,7 +491,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                 >
                   {isSpectator && (
                      <div className="absolute top-2 left-2 z-40 flex flex-col gap-1 items-start pointer-events-none">
-                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${p.role === PlayerRole.UNDERCOVER ? 'bg-red-600 text-white' : 'bg-cyan-600 text-white'}`}>
+                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${p.role === PlayerRole.UNDERCOVER ? 'bg-red-600 text-white border-red-400' : 'bg-cyan-600 text-white border-cyan-400'}`}>
                             {playerRoleText}
                         </span>
                         <span className="text-[8px] font-bold text-white bg-black/80 px-1.5 rounded border border-white/10">
@@ -616,7 +616,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                   }}
                 >
                    <div className={`absolute top-0 inset-x-0 h-1.5 ${cardColor === 'red' ? 'bg-red-600' : cardColor === 'cyan' ? 'bg-cyan-400' : 'bg-amber-500'} shadow-[0_0_20px_currentColor]`}></div>
-                   <TacticalCorners color={cardColor} />
                    
                    {/* Top Info */}
                    <div className="pt-12 pb-4 text-center space-y-3 relative z-10 px-6">
