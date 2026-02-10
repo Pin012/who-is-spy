@@ -619,10 +619,11 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                    
                    {/* Top Info */}
                    <div className="pt-12 pb-4 text-center space-y-3 relative z-10 px-6">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/5">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/5 mb-4">
                         <span className={`w-1.5 h-1.5 rounded-full ${cardColor === 'red' ? 'bg-red-500' : cardColor === 'cyan' ? 'bg-cyan-400' : 'bg-amber-500'} animate-pulse`}></span>
-                        <p className="text-[8px] font-black text-zinc-400 uppercase tracking-[0.3em]">Identity Verified</p>
+                        <p className="text-[8px] font-black text-zinc-400 uppercase tracking-[0.3em]">Access Card</p>
                       </div>
+                      <p className="text-[9px] text-zinc-500 font-black uppercase tracking-[0.4em] mb-1">PLAYER</p>
                       <h2 className="text-3xl font-black text-white uppercase tracking-wider drop-shadow-lg">{currentPlayer.name}</h2>
                    </div>
 
@@ -630,7 +631,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                    <div className="flex-1 flex flex-col items-center justify-center relative p-8">
                       <div className="absolute inset-6 bg-white/[0.02] rounded-2xl border border-white/5"></div>
                       <div className={`relative z-10 text-center transition-all duration-1000 delay-300 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                         <p className="text-[9px] text-zinc-600 font-black uppercase tracking-[0.5em] mb-6">Assigned Codeword</p>
+                         <p className="text-[9px] text-zinc-600 font-black uppercase tracking-[0.5em] mb-6">Your Codeword</p>
                          <p className={`font-black break-words leading-none drop-shadow-2xl ${getWordStyle(cardWord)} ${cardColor === 'red' ? 'text-red-500' : cardColor === 'cyan' ? 'text-cyan-400' : 'text-amber-500'}`}>
                             {cardWord}
                          </p>
@@ -639,6 +640,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
 
                    {/* Bottom Role */}
                    <div className="pb-12 pt-4 text-center relative z-10 px-8">
+                    <p className="mb-2 text-[9px] text-zinc-500 font-black uppercase tracking-[0.4em]">MISSION ROLE</p>
                       <div className={`block w-full py-4 rounded-xl border-2 font-black text-sm uppercase tracking-[0.4em] shadow-lg transition-all
                          ${cardColor === 'red' ? 'border-red-900/40 bg-red-900/10 text-red-500 shadow-red-900/20' : 
                            cardColor === 'cyan' ? 'border-cyan-900/40 bg-cyan-900/10 text-cyan-400 shadow-cyan-900/20' : 
