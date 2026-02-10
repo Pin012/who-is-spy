@@ -518,7 +518,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                       {p.is_alive ? (
                         hasSent ? (
                           canSeeOthersMessages ? (
-                            <div className="relative bg-gradient-to-b from-zinc-900 to-black border border-amber-500/50 rounded-2xl px-5 py-4 w-full shadow-[0_8px_24px_rgba(0,0,0,0.6)] flex items-center justify-center min-h-[64px] text-amber-400">
+                            <div className="bg-gradient-to-b from-amber-400/5 to-zinc-900/90 border border-amber-400/40 rounded-xl px-4 py-3 w-full shadow-lg shadow-black/40 flex items-center justify-center min-h-[60px] transition-colors text-amber-400">
                                <p className="text-sm md:text-base font-bold leading-tight break-words text-center">
                                  {p.message}
                                </p>
