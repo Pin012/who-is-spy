@@ -632,7 +632,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     </div>
 
                    {/* KeyWord */}
-                   <div className="py-6 flex flex-col items-center justify-center relative px-6">
+                   <div className="flex-1 py-6 flex flex-col items-center justify-center relative px-6">
                     <p className="text-[9px] text-zinc-600 font-black uppercase tracking-[0.5em] mb-3">Your Codeword</p>
                       <div className={`w-full max-w-[280px] px-6 py-6 rounded-xl border text-center shadow-inner ${cardColor === 'red' ? 'border-red-500/40 bg-red-500/5 shadow-red-900/30' : cardColor === 'cyan' ? 'border-cyan-400/40 bg-cyan-400/5 shadow-cyan-900/30' : 'border-amber-400/40 bg-amber-400/5 shadow-amber-900/30'}`}>
                       <p className={`font-black break-words leading-tight drop-shadow-xl ${getWordStyle(cardWord)} ${cardColor === 'red' ? 'text-red-500' : cardColor === 'cyan' ? 'text-cyan-400' : 'text-amber-500'}`}>{cardWord}</p>
