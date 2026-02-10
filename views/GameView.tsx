@@ -638,9 +638,9 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                    {/* Bottom Role */}
                    <div className="pb-12 pt-4 text-center relative z-10 px-8">
                     <p className="mb-2 text-[9px] text-zinc-500 font-black uppercase tracking-[0.4em]">MISSION ROLE</p>
-                      <div className={`w-full h-[1px] mb-4  ${cardColor === 'red' ? 'bg-red-500/40' : cardColor === 'cyan' ? 'bg-cyan-400/40' : 'bg-amber-400/40'}`}></div>
+                      <div className={`w-full h-[0.5px] mb-4 opacity-50 ${cardColor === 'red' ? 'bg-red-400/30' : cardColor === 'cyan' ? 'bg-cyan-300/30' : 'bg-amber-300/30'}`}></div>
                       <div className="font-black text-sm uppercase tracking-[0.4em]">
-                             {isSpectator ? <div className="flex flex-col items-center text-zinc-300"><span className="text-[10px] opacity-60">COMMANDER</span><span>指揮官</span></div> : currentPlayer.role === PlayerRole.UNDERCOVER ? <div className="flex flex-col items-center text-red-500"><span className="text-[10px] opacity-60">UNDERCOVER</span><span>臥底</span></div> : <div className="flex flex-col items-center text-cyan-400"><span className="text-[10px] opacity-60">CIVILIAN</span><span>平民</span></div>}
+                             {isSpectator ? <div className="flex flex-col items-center text-zinc-300"><span>COMMANDER</span><span>指揮官</span></div> : currentPlayer.role === PlayerRole.UNDERCOVER ? <div className="flex flex-col items-center text-red-500"><span>UNDERCOVER</span><span>臥底</span></div> : <div className="flex flex-col items-center text-cyan-400"><span>CIVILIAN</span><span>平民</span></div>}
                       </div>
                    </div>
                 </div>
