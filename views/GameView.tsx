@@ -633,7 +633,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
 
                    {/* KeyWord */}
                    <div className="flex-1 py-6 flex flex-col items-center justify-center relative px-6">
-                    <p className="text-[9px] text-zinc-600 font-black uppercase tracking-[0.5em] mb-3">Your Codeword</p>
+                    <p className="text-[9px] text-zinc-500 font-black uppercase tracking-[0.5em] mb-3">Code Word</p>
                       <div className={`w-full max-w-[280px] px-6 py-6 rounded-xl border text-center shadow-inner ${cardColor === 'red' ? 'border-red-500/40 bg-red-500/5 shadow-red-900/30' : cardColor === 'cyan' ? 'border-cyan-400/40 bg-cyan-400/5 shadow-cyan-900/30' : 'border-amber-400/40 bg-amber-400/5 shadow-amber-900/30'}`}>
                       <p className={`font-black break-words leading-tight drop-shadow-xl ${getWordStyle(cardWord)} ${cardColor === 'red' ? 'text-red-500' : cardColor === 'cyan' ? 'text-cyan-400' : 'text-amber-500'}`}>{cardWord}</p>
                       </div>
@@ -644,7 +644,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     <p className="mb-2 text-[9px] text-zinc-500 font-black uppercase tracking-[0.4em]">MISSION ROLE</p>
                       <div className={`w-full h-[0.5px] mb-4 opacity-50 ${cardColor === 'red' ? 'bg-red-400/30' : cardColor === 'cyan' ? 'bg-cyan-300/30' : 'bg-amber-300/30'}`}></div>
                       <div className="font-black text-sm uppercase tracking-[0.4em]">
-                             {isSpectator ? <div className="flex flex-col items-center text-zinc-300"><span>COMMANDER</span><span>指揮官</span></div> : currentPlayer.role === PlayerRole.UNDERCOVER ? <div className="flex flex-col items-center text-red-500"><span>UNDERCOVER</span><span>臥底</span></div> : <div className="flex flex-col items-center text-cyan-400"><span>CIVILIAN</span><span>平民</span></div>}
+                        {isSpectator ? <div className="flex flex-col items-center text-zinc-300 gap-2"><span className="text-[9px] tracking-[0.25em] opacity-70">COMMANDER</span><span className="text-[11px] tracking-normal">- 指揮官 -</span></div> : currentPlayer.role === PlayerRole.UNDERCOVER ? <div className="flex flex-col items-center text-red-500 gap-2"><span className="text-[9px] tracking-[0.25em] opacity-70">UNDERCOVER</span><span className="text-[11px] tracking-normal">- 臥底 -</span></div> : <div className="flex flex-col items-center text-cyan-400 gap-2"><span className="text-[9px] tracking-[0.25em] opacity-70">CIVILIAN</span><span className="text-[11px] tracking-normal">- 平民 -</span></div>}
                       </div>
                    </div>
                 </div>
