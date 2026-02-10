@@ -597,10 +597,8 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
 
                     {/* Stamp */}
                     <div className="relative transform -rotate-12 opacity-90 scale-110">
-                      <div className="absolute inset-0 bg-amber-900/12 blur-3xl rounded-full animate-[pulse_8s_ease-in-out_infinite]"></div>
-                      <div className="absolute inset-0 bg-amber-700/18 blur-xl rounded-full animate-[pulse_6s_ease-in-out_infinite]"></div>
-                      <div className="absolute inset-0 bg-yellow-600/14 blur-lg rounded-full animate-[pulse_4s_ease-in-out_infinite]"></div>
-                      <SecretStampIcon className="w-60 h-60 text-amber-700 drop-shadow-[0_0_10px_rgba(180,120,20,0.5)]" />
+                      <div className="absolute inset-0 bg-amber-700/30 blur-2xl rounded-full animate-pulse"></div>
+                      <SecretStampIcon className="w-60 h-60 text-amber-700 drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]" />
                     </div>
 
                     <div className="absolute bottom-12 w-full text-center space-y-2 z-10">
