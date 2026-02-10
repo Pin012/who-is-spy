@@ -17,11 +17,11 @@ const AgentIcon = ({ className = "w-2/3 h-2/3" }: { className?: string }) => (
 
 const SecretStampIcon = ({ className = "w-32 h-32" }: { className?: string }) => (
   <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" className={className}>
-    <circle cx="50" cy="50" r="45" strokeWidth="2" strokeDasharray="4 2" opacity="0.8" />
-    <circle cx="50" cy="50" r="40" strokeWidth="1" opacity="0.5" />
+    <circle cx="50" cy="50" r="45" strokeWidth="1.6" strokeDasharray="3 2" opacity="0.8" />
+    <circle cx="50" cy="50" r="40" strokeWidth="0.6" opacity="0.7" />
     <path d="M20 50h60" strokeWidth="1" opacity="0.3" />
-    <text x="50" y="52" fontFamily="Arial" fontSize="10" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none">TOP SECRET</text>
-    <text x="50" y="65" fontFamily="Arial" fontSize="6" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none" opacity="0.8">CLASSIFIED</text>
+    <text x="50" y="52" fontFamily="DIN Condensed" fontSize="10" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none">TOP SECRET</text>
+    <text x="50" y="65" fontFamily="DIN Condensed" fontSize="6" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none" opacity="0.8">CLASSIFIED</text>
     <path d="M30 30L70 70M70 30L30 70" strokeWidth="1" opacity="0.4" />
   </svg>
 );
@@ -598,7 +598,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
 
                     {/* Stamp */}
                     <div className="relative transform -rotate-12 opacity-90 scale-110">
-                        <div className="absolute inset-0 bg-amber-660/20 blur-2xl rounded-full animate-pulse"></div>
+                        <div className="absolute inset-0 bg-amber-700/20 blur-2xl rounded-full animate-pulse"></div>
                         <SecretStampIcon className="w-60 h-60 text-amber-600 drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]" />
                     </div>
 
