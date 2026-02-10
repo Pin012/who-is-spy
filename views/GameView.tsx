@@ -283,7 +283,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   if (isGameOver) {
     return (
       <div className="glass p-10 rounded-lg text-center space-y-12 animate-in fade-in zoom-in duration-1000 max-w-2xl mx-auto border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.5)] relative overflow-hidden">
-        <TacticalCorners color={isCivilianWin ? 'cyan' : 'red'} />
         <div className="space-y-4 relative z-10">
           <div className={`inline-block p-8 rounded-full mb-6 border-2 shadow-[0_0_60px_rgba(255,255,255,0.05)] ${isCivilianWin ? 'bg-cyan-500/10 border-cyan-500/30' : 'bg-red-600/10 border-red-600/30'}`}>
             <span className="text-8xl drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]">{isCivilianWin ? '👮' : '🕵️'}</span>
