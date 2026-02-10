@@ -17,11 +17,11 @@ const AgentIcon = ({ className = "w-2/3 h-2/3" }: { className?: string }) => (
 
 const SecretStampIcon = ({ className = "w-32 h-32" }: { className?: string }) => (
   <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" className={className}>
-    <circle cx="50" cy="50" r="45" strokeWidth="1.6" strokeDasharray="3 2" opacity="0.8" />
-    <circle cx="50" cy="50" r="40" strokeWidth="0.6" opacity="0.5" />
-    <path d="M20 50h60M50 20v60" strokeWidth="1.2" opacity="0.35" />
+    <circle cx="50" cy="50" r="45" strokeWidth="1.5" strokeDasharray="2.5 2" opacity="0.6" />
+    <circle cx="50" cy="50" r="40" strokeWidth="0.6" opacity="0.4" />
+    <path d="M20 50h60M50 20v60" strokeWidth="0.9" opacity="0.3" />
     <text x="50" y="52" fontFamily="Oswald" fontSize="10" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none">TOP SECRET</text>
-    <text x="50" y="65" fontFamily="Oswald" fontSize="6" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none" opacity="0.85">CLASSIFIED</text>
+    <text x="50" y="65" fontFamily="Oswald" fontSize="5" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none" opacity="0.75" style={{ letterSpacing: "0.15em" }}>CLASSIFIED</text>
   </svg>
 );
 
@@ -597,8 +597,8 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
 
                     {/* Stamp */}
                     <div className="relative transform -rotate-12 opacity-90 scale-110">
-                        <div className="absolute inset-0 bg-amber-750/20 blur-2xl rounded-full animate-pulse"></div>
-                        <SecretStampIcon className="w-60 h-60 text-amber-600 drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]" />
+                        <div className="absolute inset-0 bg-amber-700/20 blur-2xl rounded-full animate-pulse"></div>
+                        <SecretStampIcon className="w-60 h-60 text-amber-700 drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]" />
                     </div>
 
                     <div className="absolute bottom-12 w-full text-center space-y-2 z-10">
