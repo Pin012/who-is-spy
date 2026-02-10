@@ -20,8 +20,8 @@ const SecretStampIcon = ({ className = "w-32 h-32" }: { className?: string }) =>
     <circle cx="50" cy="50" r="45" strokeWidth="1.6" strokeDasharray="3 2" opacity="0.8" />
     <circle cx="50" cy="50" r="40" strokeWidth="0.6" opacity="0.7" />
     <path d="M20 50h60" strokeWidth="1" opacity="0.3" />
-    <text x="50" y="52" fontFamily="Courier New" fontSize="10" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none">TOP SECRET</text>
-    <text x="50" y="65" fontFamily="Courier New" fontSize="6" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none" opacity="0.8">CLASSIFIED</text>
+    <text x="50" y="52" fontFamily="DIN Alternate" fontSize="10" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none">TOP SECRET</text>
+    <text x="50" y="65" fontFamily="DIN Alternate" fontSize="6" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none" opacity="0.8">CLASSIFIED</text>
     <path d="M30 30L70 70M70 30L30 70" strokeWidth="1" opacity="0.4" />
   </svg>
 );
