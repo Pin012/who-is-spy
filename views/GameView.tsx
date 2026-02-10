@@ -588,14 +588,21 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     <div className="absolute inset-3 border border-white/5 rounded-2xl opacity-50"></div>
                     <div className="absolute inset-4 border border-white/5 rounded-xl opacity-30"></div>
 
+                    {/* Confidential */}
+                    <div className="absolute top-24 text-center space-y-2 z-10 w-full">
+                      <h3 className="mx-auto text-3xl font-black text-white/25 tracking-[0.25em] uppercase">
+                        Confidential
+                      </h3>
+                      <div className="h-[1px] w-24 bg-white/10 mx-auto"></div>
+                    </div>
+
                     {/* Stamp */}
                     <div className="relative transform -rotate-12 opacity-90 scale-110">
                         <div className="absolute inset-0 bg-amber-600/20 blur-2xl rounded-full animate-pulse"></div>
                         <SecretStampIcon className="w-48 h-48 text-amber-600 drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]" />
                     </div>
 
-                    <div className="absolute bottom-12 text-center space-y-2 z-10">
-                        <h3 className="text-3xl font-black text-white/20 tracking-[0.2em] uppercase">Confidential</h3>
+                    <div className="absolute bottom-12 w-full text-center space-y-2 z-10">
                         <div className="h-[1px] w-24 bg-white/10 mx-auto"></div>
                         <div className="text-[8px] text-amber-700 font-black tracking-[0.4em] uppercase space-y-1">
                           <p>DO NOT SHARE THIS INFORMATION</p>
