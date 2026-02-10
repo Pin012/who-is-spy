@@ -589,7 +589,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     <div className="absolute inset-4 border border-white/5 rounded-xl opacity-30"></div>
 
                     {/* Confidential */}
-                    <div className="absolute top-24 text-center space-y-2 z-10 w-full">
+                    <div className="absolute top-16 text-center space-y-2 z-10 w-full">
                       <h3 className="mx-auto text-3xl font-black text-white/25 tracking-[0.1em] uppercase">
                         Confidential
                       </h3>
