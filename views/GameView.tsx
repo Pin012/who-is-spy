@@ -568,7 +568,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     <div className="absolute inset-0 z-30 pointer-events-none">
 
                       {/* 蓋在頭像上的淘汰章 */}
-                      <div className={`absolute left-1/2 -translate-x-1/2 transition-all duration-700 ease-out ${isJustEliminated ? 'top-24 scale-100 opacity-95' : 'top-[48px] scale-[2.3] opacity-0'}`}>
+                      <div className={`absolute left-1/2 -translate-x-1/2 transition-all duration-700 ease-out ${isJustEliminated ? 'top-24 scale-[2.3] opacity-100' : 'top-[48px] scale-100 opacity-95'}`}>
                         <div className="bg-red-800/80 text-white/90 px-4 py-1.5 text-[14px] font-black uppercase tracking-[0.25em]
                           rotate-[-15deg]
                           border-2 border-red-700/90
