@@ -7,7 +7,7 @@ export const generateWordPair = async () => {
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: "請產生一組適合『誰是臥底』遊戲的詞語對。這兩個詞必須非常相似但不同。直接回傳 JSON 物件，不要包含 markdown 標籤，包含 civilianWord (平民詞) 和 undercoverWord (臥底詞)。",
+      contents: "請產生一組全新、具創意、適合『誰是臥底』遊戲的詞語對。這兩個詞必須非常相似但不同，可為抽象概念、職場及生活情境詞彙。直接回傳 JSON 物件，不要包含 markdown 標籤，包含 civilianWord (平民詞) 和 undercoverWord (臥底詞)。",
       config: {
         responseMimeType: "application/json",
         responseSchema: {
