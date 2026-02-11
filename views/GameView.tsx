@@ -512,7 +512,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                   </div>
                   <div className="text-center w-full space-y-3">
                     <p className={`font-black text-base md:text-lg leading-tight truncate px-1 uppercase tracking-widest drop-shadow-sm
-                      ${!p.is_alive ? 'text-zinc-500 opacity-80' : 'text-white'}`}>
+                      ${!p.is_alive ? 'text-zinc-500 opacity-70' : 'text-white'}`}>
                       {p.name}
                     </p>
                     <div className="h-24 flex items-center justify-center w-full relative">
@@ -556,23 +556,23 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     <div className="absolute inset-0 z-30 pointer-events-none">
 
                       {/* 蓋在頭像上的淘汰章 */}
-                      <div className="absolute top-[58px] left-1/2 -translate-x-1/2">
+                      <div className="absolute top-[36px] left-1/2 -translate-x-1/2">
                         <div className="bg-red-700 text-white px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.25em]
                           rotate-[-12deg]
                           border-2 border-red-400
-                          shadow-[0_0_35px_rgba(220,38,38,0.9)]">
+                          shadow-[0_0_20px_rgba(220,38,38,0.6)]">
                           已被淘汰
                         </div>
                       </div>
 
                       {/* 底部身分標籤 */}
-                      <div className="absolute left-1/2 -translate-x-1/2 bottom-6">
+                      <div className="absolute left-1/2 -translate-x-1/2 bottom-20">
                         <div className={`px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-widest border
                           ${p.role === PlayerRole.UNDERCOVER
                             ? 'bg-red-600/35 text-red-300 border-red-400/50 shadow-[0_0_18px_rgba(220,38,38,0.35)]'
                             : 'bg-cyan-500/30 text-cyan-200 border-cyan-300/50 shadow-[0_0_18px_rgba(34,211,238,0.25)]'
                           }`}>
-                          {p.role === PlayerRole.UNDERCOVER ? 'UNDERCOVER 臥底' : 'CIVILIAN 平民'}
+                          {p.role === PlayerRole.UNDERCOVER ? '臥底' : '平民'}
                         </div>
                       </div>
 
