@@ -578,7 +578,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                       </div>
 
                       {/* 底部身分標籤 */}
-                      <div className={`absolute transition-all duration-700 ease-out ${isJustEliminated ? 'left-1/2 top-[20%] -translate-x-1/2 scale-[1.3] opacity-100' : 'right-4 bottom-5 scale-100 opacity-95'}`}>
+                      <div className={`absolute transition-all duration-700 ease-out ${isJustEliminated ? 'right-8 bottom-9 scale-[1.5] opacity-100' : 'right-4 bottom-5 scale-100 opacity-95'}`}>
                         <div className={`px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest border
                           ${p.role === PlayerRole.UNDERCOVER
                             ? 'bg-red-600/35 text-red-300 border-red-400/50 shadow-[0_0_18px_rgba(220,38,38,0.35)]'
