@@ -236,8 +236,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
     game.status === GameStatus.DEFENDING || 
     game.status === GameStatus.VOTING;
 
-  const canIInput = !isSpectator && currentPlayer.is_alive && 
-    (game.status === GameStatus.PLAYING || (game.status === GameStatus.DEFENDING && isSuspect));
+  const canIInput = !isSpectator && currentPlayer.is_alive && (game.status === GameStatus.PLAYING || game.status === GameStatus.DEFENDING);
 
   const getPhaseInstruction = () => {
     switch (game.status) {
@@ -404,7 +403,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
               ${game.status === GameStatus.PLAYING ? 'bg-red-600 text-white shadow-red-500/20' : 
                 game.status === GameStatus.DEFENDING ? 'bg-amber-500 text-black shadow-amber-500/30' : 'bg-red-600 text-white animate-pulse shadow-red-500/40'}`}>
               {game.status === GameStatus.PLAYING ? `回合 ${game.round}  -  情報描述階段` : 
-               game.status === GameStatus.DEFENDING ? '偵測到數據衝突！' : '投票淘汰階段'}
+               game.status === GameStatus.DEFENDING ? '投票結果持平！' : '投票淘汰階段'}
             </div>
             <div className="text-left">
               <p className="text-[8px] text-zinc-500 font-black uppercase tracking-[0.4em]">ACTIVE SQUAD</p>
@@ -451,7 +450,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
               ) : canSeeOthersMessages ? (
                  <div className="py-2 text-red-500 font-bold italic text-sm">
                    <span className="bg-red-600/10 border border-red-600/30 px-6 py-4 rounded-md inline-block animate-[flash_0.6s_ease-out] text-base md:text-xl shadow-[0_0_20px_rgba(220,38,38,0.1)] text-white">
-                      {currentPlayer.message || '傳輸鏈路已就緒'}
+                      {currentPlayer.message}
                    </span>
                  </div>
               ) : (
