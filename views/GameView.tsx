@@ -509,6 +509,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                       isSuspected ? 'bg-amber-600 text-black border-white/20' : 'bg-zinc-900 text-zinc-400 border-white/5'}
                   `}>
                     <AgentIcon />
+                  </div>
                     {!p.is_alive && (
                       <div className={`absolute -right-1 -bottom-1 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border
                         ${p.role === PlayerRole.UNDERCOVER
@@ -518,8 +519,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                         {p.role === PlayerRole.UNDERCOVER ? '臥底' : '平民'}
                       </div>
                     )}
-
-                  </div>
+                  
                   <div className="text-center w-full space-y-3">
                     <p className={`font-black text-base md:text-lg leading-tight truncate px-1 uppercase tracking-widest drop-shadow-sm
                       ${!p.is_alive ? 'text-zinc-500 opacity-70' : 'text-white'}`}>
