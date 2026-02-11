@@ -233,7 +233,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
     !currentPlayer.is_alive || // 修改：被淘汰者可以看到訊息
     sentThisTurn || 
     myMessageOnServer || 
-    game.status === GameStatus.DEFENDING || 
     game.status === GameStatus.VOTING;
 
   const canIInput = !isSpectator && currentPlayer.is_alive && (game.status === GameStatus.PLAYING || game.status === GameStatus.DEFENDING);
