@@ -32,6 +32,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   const [sendingMessage, setSendingMessage] = useState(false);
   const [sentThisTurn, setSentThisTurn] = useState(false);
   const [showRoundBanner, setShowRoundBanner] = useState(false);
+  const [isEliminating, setIsEliminating] = useState(false);
   
   const [instructionKey, setInstructionKey] = useState(0);
 
@@ -115,6 +116,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
         
         if (candidatesWithMax.length === 1) {
           const eliminatedId = candidatesWithMax[0][0];
+          setIsEliminating(true);
           await supabase!.from('players').update({ is_alive: false }).eq('id', eliminatedId);
           
           const nextAlivePlayers = players.filter(p => p.id !== eliminatedId && p.is_alive && (game.host_is_player || !p.is_host));
@@ -122,6 +124,10 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
           
           const isCivilianWin = undercoversCount === 0;
           const isUndercoverWin = nextAlivePlayers.length <= 2 && undercoversCount > 0;
+
+          setTimeout(() => {
+            setIsEliminating(false);
+          }, 1200);
 
           if (isCivilianWin || isUndercoverWin) {
             setTimeout(async () => {
@@ -556,7 +562,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     <div className="absolute inset-0 z-30 pointer-events-none">
 
                       {/* 蓋在頭像上的淘汰章 */}
-                      <div className="absolute top-[48px] left-1/2 -translate-x-1/2">
+                      <div className={`absolute left-1/2 -translate-x-1/2 transition-all duration-700 ease-out ${isEliminating ? 'top-24 scale-[2.4] opacity-100' : 'top-[48px] scale-100 opacity-90'}`}>
                         <div className="bg-red-800/70 text-white/90 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.25em]
                           rotate-[-15deg]
                           border-2 border-red-700/80
@@ -566,7 +572,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                       </div>
 
                       {/* 底部身分標籤 */}
-                      <div className="absolute right-4 bottom-5">
+                      <div className={`absolute transition-all duration-700 ease-out ${isEliminating ? 'right-1/2 bottom-1/2 scale-150 opacity-100 translate-x-1/2 translate-y-1/2' : 'right-4 bottom-5 scale-100 opacity-90'}`}>
                         <div className={`px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest border
                           ${p.role === PlayerRole.UNDERCOVER
                             ? 'bg-red-600/35 text-red-300 border-red-400/50 shadow-[0_0_18px_rgba(220,38,38,0.35)]'
