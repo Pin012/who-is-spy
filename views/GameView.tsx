@@ -303,7 +303,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                {isCivilianWin ? 'Civilian Victory' : 'Undercover Victory'}
              </h2>
              <div className={`text-lg font-black uppercase tracking-[0.2em] mt-2 ${isCivilianWin ? 'text-cyan-600' : 'text-red-700'}`}>
-               {isCivilianWin ? '平民獲得最終勝利' : '臥底已成功掌控局勢'}
+               {isCivilianWin ? '平民獲得最終勝利' : '臥底獲得最終勝利'}
              </div>
           </div>
         </div>
