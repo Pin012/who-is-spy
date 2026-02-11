@@ -557,7 +557,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                           </div>
                         )
                       ) : (
-                        <div className={`px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest border animate-[pop_0.6s_ease-out] ${p.role===PlayerRole.UNDERCOVER?'bg-red-600/35 text-red-300 border-red-400/50 shadow-[0_0_18px_rgba(220,38,38,0.35)]':'bg-cyan-500/30 text-cyan-200 border-cyan-300/50 shadow-[0_0_18px_rgba(34,211,238,0.25)]'}`}>
+                        <div className={`absolute inset-0 flex items-center justify-center transition-all duration-700 ease-out ${isJustEliminated?'scale-[2] opacity-100':'scale-100 opacity-95'}`}><div className={`px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest border ${p.role===PlayerRole.UNDERCOVER?'bg-red-600/35 text-red-300 border-red-400/50 shadow-[0_0_18px_rgba(220,38,38,0.35)]':'bg-cyan-500/30 text-cyan-200 border-cyan-300/50 shadow-[0_0_18px_rgba(34,211,238,0.25)]'}`}>{p.role===PlayerRole.UNDERCOVER?'臥底':'平民'}</div></div>
                       )}
                     </div>
                   </div>
