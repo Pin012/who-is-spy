@@ -400,7 +400,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
         
         <div className="flex flex-col gap-1 w-full md:w-auto">
           <div className="flex items-center gap-6">
-            <div className={`px-4 py-2 rounded-md font-black uppercase tracking-[0.1em] text-[11px] shadow-lg transition-all 
+            <div className={`px-4 py-2 rounded-md font-black uppercase tracking-[0.1em] text-[13px] shadow-lg transition-all 
               ${game.status === GameStatus.PLAYING ? 'bg-red-600 text-white shadow-red-500/20' : 
                 game.status === GameStatus.DEFENDING ? 'bg-amber-500 text-black shadow-amber-500/30' : 'bg-red-600 text-white animate-pulse shadow-red-500/40'}`}>
               {game.status === GameStatus.PLAYING ? `回合 ${game.round}  -  情報描述階段` : 
@@ -426,7 +426,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
         </div>
 
         {currentPlayer.is_host && (
-          <button onClick={togglePhase} className="w-full md:w-auto bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg font-black uppercase tracking-[0.1em] transition-all hover:scale-105 active:scale-95 shadow-xl shadow-red-900/40 border border-white/10">
+          <button onClick={togglePhase} className="w-full md:w-auto bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-lg font-black uppercase tracking-[0.1em] transition-all hover:scale-105 active:scale-95 text-sm shadow-xl shadow-red-900/40 border border-white/10">
             {game.status === GameStatus.PLAYING ? '啟動投票階段' : 
              game.status === GameStatus.DEFENDING ? '重啟投票程序' : '執行淘汰程序'}
           </button>
@@ -568,7 +568,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     <div className="absolute inset-0 z-30 pointer-events-none">
 
                       {/* 蓋在頭像上的淘汰章 */}
-                      <div className={`absolute left-1/2 -translate-x-1/2 transition-all duration-700 ease-out ${isJustEliminated ? 'top-24 scale-[2.3] opacity-100' : 'top-[48px] scale-[2.3] opacity-0'}`}>
+                      <div className={`absolute left-1/2 -translate-x-1/2 transition-all duration-700 ease-out ${isJustEliminated ? 'top-24 scale-[2.3] opacity-100' : 'top-[48px] scale-[2.3] opacity-95'}`}>
                         <div className="bg-red-800/80 text-white/90 px-4 py-1.5 text-[14px] font-black uppercase tracking-[0.25em]
                           rotate-[-15deg]
                           border-2 border-red-700/90
