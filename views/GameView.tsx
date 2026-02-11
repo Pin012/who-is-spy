@@ -556,8 +556,8 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     <div className="absolute inset-0 z-30 pointer-events-none">
 
                       {/* 蓋在頭像上的淘汰章 */}
-                      <div className="absolute top-[42px] left-1/2 -translate-x-1/2">
-                        <div className="bg-red-800/70 text-red-100/90 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.25em]
+                      <div className="absolute top-[48px] left-1/2 -translate-x-1/2">
+                        <div className="bg-red-800/70 text-white/90 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.25em]
                           rotate-[-15deg]
                           border-2 border-red-700/80
                           shadow-[0_0_15px_rgba(220,38,38,0.3)]">
@@ -566,7 +566,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                       </div>
 
                       {/* 底部身分標籤 */}
-                      <div className="absolute right-4 bottom-12">
+                      <div className="absolute right-4 bottom-5">
                         <div className={`px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest border
                           ${p.role === PlayerRole.UNDERCOVER
                             ? 'bg-red-600/35 text-red-300 border-red-400/50 shadow-[0_0_18px_rgba(220,38,38,0.35)]'
