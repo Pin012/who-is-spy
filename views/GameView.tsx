@@ -467,7 +467,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                   <button
                     onClick={handleSubmitMessage}
                     disabled={sendingMessage || !localMessage.trim()}
-                    className="bg-red-600 hover:bg-red-500 text-white px-8 py-3.5 rounded-lg font-black uppercase tracking-widest transition-all disabled:opacity-20 text-xs shrink-0 shadow-lg border border-white/10 active:scale-95"
+                    className="bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-lg font-black uppercase tracking-widest transition-all disabled:opacity-20 text-sm shrink-0 shadow-lg border border-white/10 active:scale-95"
                   >
                     {sendingMessage ? '處理中...' : '發送描述'}
                   </button>
@@ -578,7 +578,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                       </div>
 
                       {/* 底部身分標籤 */}
-                      <div className={`absolute transition-all duration-700 ease-out ${isJustEliminated ? 'right-20 bottom-6 scale-[2.5] opacity-100' : 'right-4 bottom-5 scale-100 opacity-95'}`}>
+                      <div className={`absolute transition-all duration-700 ease-out ${isJustEliminated ? 'right-25 bottom-10 scale-[2.5] opacity-100' : 'right-4 bottom-5 scale-100 opacity-95'}`}>
                         <div className={`px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest border
                           ${p.role === PlayerRole.UNDERCOVER
                             ? 'bg-red-600/35 text-red-300 border-red-400/50 shadow-[0_0_18px_rgba(220,38,38,0.35)]'
