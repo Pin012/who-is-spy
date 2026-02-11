@@ -33,8 +33,10 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   const [sentThisTurn, setSentThisTurn] = useState(false);
   const [showRoundBanner, setShowRoundBanner] = useState(false);
   const [isEliminating, setIsEliminating] = useState(false);
-  
+  const [justEliminatedId, setJustEliminatedId] = useState<string | null>(null);
+
   const [instructionKey, setInstructionKey] = useState(0);
+  const prevPlayersRef = useRef<Player[]>([]);
 
   useEffect(() => {
     if (game.status === GameStatus.PLAYING) {
@@ -56,6 +58,9 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
     const timer = setTimeout(() => setRevealed(true), 1200);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => { const prev = prevPlayersRef.current; if (prev.length) { const died = prev.find(oldP => oldP.is_alive && players.find(p => p.id === oldP.id)?.is_alive === false); if (died) { setJustEliminatedId(died.id); setTimeout(() => setJustEliminatedId(null), 1200); } } prevPlayersRef.current = players; }, [players]);
+
 
   const getMyWord = (): string => {
     if (currentPlayer.role === PlayerRole.CIVILIAN) return game.civilian_word || "未設定";
@@ -477,7 +482,8 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
               const isVotedByMe = currentPlayer.voted_for === p.id;
               const hasSent = (p.message || '').trim().length > 0;
               const isSuspected = game.suspect_ids?.includes(p.id) || false;
-              
+              const isJustEliminated = p.id === justEliminatedId;
+
               const playerRoleText = p.role === PlayerRole.UNDERCOVER ? "臥底" : "平民";
               const playerWord = p.role === PlayerRole.CIVILIAN ? game.civilian_word : (p.role === PlayerRole.UNDERCOVER ? game.undercover_word : "???");
 
@@ -562,7 +568,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     <div className="absolute inset-0 z-30 pointer-events-none">
 
                       {/* 蓋在頭像上的淘汰章 */}
-                      <div className={`absolute left-1/2 -translate-x-1/2 transition-all duration-700 ease-out ${isEliminating ? 'top-24 scale-[2.4] opacity-100' : 'top-[48px] scale-100 opacity-90'}`}>
+                      <div className={`absolute left-1/2 -translate-x-1/2 transition-all duration-700 ease-out ${isJustEliminated ? 'top-24 scale-[2.3] opacity-100' : 'top-[48px] scale-100 opacity-95'}`}>
                         <div className="bg-red-800/70 text-white/90 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.25em]
                           rotate-[-15deg]
                           border-2 border-red-700/80
@@ -572,7 +578,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                       </div>
 
                       {/* 底部身分標籤 */}
-                      <div className={`absolute transition-all duration-700 ease-out ${isEliminating ? 'right-1/2 bottom-1/2 scale-150 opacity-100 translate-x-1/2 translate-y-1/2' : 'right-4 bottom-5 scale-100 opacity-90'}`}>
+                      <div className={`absolute transition-all duration-700 ease-out ${isJustEliminated ? 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 scale-[1.6] opacity-100' : 'right-4 bottom-5 scale-100 opacity-95'}`}>
                         <div className={`px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest border
                           ${p.role === PlayerRole.UNDERCOVER
                             ? 'bg-red-600/35 text-red-300 border-red-400/50 shadow-[0_0_18px_rgba(220,38,38,0.35)]'
