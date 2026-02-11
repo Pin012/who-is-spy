@@ -504,11 +504,21 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     </div>
                   )}
 
-                  <div className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all shadow-inner border-2 overflow-hidden
+                  <div className={`relative w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all shadow-inner border-2 overflow-hidden
                     ${p.id === currentPlayer.id ? 'bg-red-600 text-white border-white/20 shadow-red-900/40' : 
                       isSuspected ? 'bg-amber-600 text-black border-white/20' : 'bg-zinc-900 text-zinc-400 border-white/5'}
                   `}>
                     <AgentIcon />
+                    {!p.is_alive && (
+                      <div className={`absolute -right-1 -bottom-1 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border
+                        ${p.role === PlayerRole.UNDERCOVER
+                          ? 'bg-red-600/40 text-red-200 border-red-400/50 shadow-[0_0_12px_rgba(220,38,38,0.4)]'
+                          : 'bg-cyan-500/35 text-cyan-200 border-cyan-300/50 shadow-[0_0_12px_rgba(34,211,238,0.3)]'
+                        }`}>
+                        {p.role === PlayerRole.UNDERCOVER ? '臥底' : '平民'}
+                      </div>
+                    )}
+
                   </div>
                   <div className="text-center w-full space-y-3">
                     <p className={`font-black text-base md:text-lg leading-tight truncate px-1 uppercase tracking-widest drop-shadow-sm
@@ -556,18 +566,18 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     <div className="absolute inset-0 z-30 pointer-events-none">
 
                       {/* 蓋在頭像上的淘汰章 */}
-                      <div className="absolute top-[36px] left-1/2 -translate-x-1/2">
-                        <div className="bg-red-700 text-white px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.25em]
-                          rotate-[-12deg]
-                          border-2 border-red-400
-                          shadow-[0_0_20px_rgba(220,38,38,0.6)]">
+                      <div className="absolute top-[32px] left-1/2 -translate-x-1/2">
+                        <div className="bg-red-800/70 text-red-100/90 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.25em]
+                          rotate-[-15deg]
+                          border-2 border-red-700/80
+                          shadow-[0_0_15px_rgba(220,38,38,0.3)]">
                           已被淘汰
                         </div>
                       </div>
 
                       {/* 底部身分標籤 */}
                       <div className="absolute left-1/2 -translate-x-1/2 bottom-24">
-                        <div className={`px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest border
+                        <div className={`px-3 py-1.2 rounded text-[10px] font-black uppercase tracking-widest border
                           ${p.role === PlayerRole.UNDERCOVER
                             ? 'bg-red-600/35 text-red-300 border-red-400/50 shadow-[0_0_18px_rgba(220,38,38,0.35)]'
                             : 'bg-cyan-500/30 text-cyan-200 border-cyan-300/50 shadow-[0_0_18px_rgba(34,211,238,0.25)]'
