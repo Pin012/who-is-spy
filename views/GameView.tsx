@@ -75,7 +75,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
     return 'text-5xl tracking-wide';
   };
 
-  const isSuspect = game.suspect_ids?.includes(currentPlayer.id) || false;
+  const isSuspect = game.status===GameStatus.DEFENDING&&players.some(p=>p.id===currentPlayer.id&&game.suspect_ids?.includes(p.id));
 
   const handleVote = async (targetId: string) => {
     if (!currentPlayer.is_alive || game.status !== GameStatus.VOTING || !supabase || voting) return;
