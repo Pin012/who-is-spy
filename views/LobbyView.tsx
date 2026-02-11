@@ -135,7 +135,7 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer, onE
 
       <div className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div className="space-y-1">
-          <h2 className="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase leading-tight">Mission Lobby</h2>
+          <h2 className="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase leading-tight">Lobby</h2>
           <div className="flex flex-wrap items-center gap-2">
              <div className="px-2 py-0.5 bg-red-600/10 border border-red-600/30 rounded text-[8px] md:text-[9px] font-black text-red-500 uppercase tracking-widest">
                {game.host_is_player ? "Active Deployment" : "Surveillance"}
