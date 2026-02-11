@@ -566,7 +566,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                       </div>
 
                       {/* 底部身分標籤 */}
-                      <div className="absolute left-1/2 -translate-x-1/2 bottom-27">
+                      <div className="absolute left-1/2 -translate-x-1/2 bottom-24">
                         <div className={`px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest border
                           ${p.role === PlayerRole.UNDERCOVER
                             ? 'bg-red-600/35 text-red-300 border-red-400/50 shadow-[0_0_18px_rgba(220,38,38,0.35)]'
