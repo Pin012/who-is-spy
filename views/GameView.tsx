@@ -576,18 +576,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                           已被淘汰
                         </div>
                       </div>
-
-                      {/* 底部身分標籤 */}
-                      <div className={`absolute transition-all duration-700 ease-out ${isJustEliminated ? 'right-16 bottom-8 scale-[2] opacity-100' : 'right-4 bottom-5 scale-100 opacity-95'}`}>
-                        <div className={`px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest border
-                          ${p.role === PlayerRole.UNDERCOVER
-                            ? 'bg-red-600/35 text-red-300 border-red-400/50 shadow-[0_0_18px_rgba(220,38,38,0.35)]'
-                            : 'bg-cyan-500/30 text-cyan-200 border-cyan-300/50 shadow-[0_0_18px_rgba(34,211,238,0.25)]'
-                          }`}>
-                          {p.role === PlayerRole.UNDERCOVER ? '臥底' : '平民'}
-                        </div>
-                      </div>
-
                     </div>
                   )}
 
