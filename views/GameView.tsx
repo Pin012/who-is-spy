@@ -557,7 +557,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                           </div>
                         )
                       ) : (
-                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest border border-zinc-800 px-3 py-1 rounded">離線中</span>
+                        <div className={`px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest border animate-[pop_0.6s_ease-out] ${p.role===PlayerRole.UNDERCOVER?'bg-red-600/35 text-red-300 border-red-400/50 shadow-[0_0_18px_rgba(220,38,38,0.35)]':'bg-cyan-500/30 text-cyan-200 border-cyan-300/50 shadow-[0_0_18px_rgba(34,211,238,0.25)]'}`}>
                       )}
                     </div>
                   </div>
