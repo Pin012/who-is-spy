@@ -480,7 +480,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                   key={p.id} 
                   onClick={() => game.status === GameStatus.VOTING && p.is_alive && !isSpectator && handleVote(p.id)}
                   className={`group relative overflow-hidden p-6 rounded-md border-2 transition-all duration-300 flex flex-col items-center gap-5
-                    ${!p.is_alive ? 'opacity-20 grayscale border-transparent bg-black/60 cursor-not-allowed' : 
+                    ${!p.is_alive ? 'border-red-700/40 bg-black/60 cursor-not-allowed' : 
                       isVotedByMe ? 'border-red-600 bg-red-600/15 scale-95 shadow-[0_0_30px_rgba(220,38,38,0.3)]' : 
                       isSuspected ? 'border-amber-600 bg-amber-600/10 shadow-[0_0_40px_rgba(245,158,11,0.2)]' :
                       game.status === GameStatus.VOTING && !isSpectator ? 'border-white/20 bg-white/5 hover:border-red-600/60 cursor-pointer shadow-xl' : 
@@ -550,33 +550,28 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     <div className="absolute top-3 right-3 bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-black shadow-[0_0_15px_rgba(220,38,38,0.5)] border-2 border-white/20">{voteCount}</div>
                   )}
                   {!p.is_alive && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/80 z-30 animate-in fade-in zoom-in duration-300 backdrop-blur-[2px]">
-
-                      {/* 淘汰章 */}
-                      <div className="bg-red-700/90 text-white px-5 py-2 text-[12px] font-black uppercase tracking-[0.3em]
-                        rotate-[-12deg]
-                        shadow-[0_0_35px_rgba(220,38,38,0.8)]
-                        border-2 border-red-400/80
-                        scale-125
-                      ">
-                        已被淘汰
+                    <div className="absolute inset-0 z-30 bg-black/55">
+                      {/* 中間淘汰章 */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="bg-red-700 text-white px-5 py-2 text-[12px] font-black uppercase tracking-[0.3em] rotate-[-12deg]
+                          border-2 border-red-400 shadow-[0_0_40px_rgba(220,38,38,0.9)]">
+                          已被淘汰
+                        </div>
                       </div>
 
-                      {/* 身分標籤 */}
-                      <div
-                        className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest border shadow-lg
-                          ${
-                            p.role === PlayerRole.UNDERCOVER
-                              ? 'bg-red-600/25 text-red-400 border-red-500/40 shadow-red-600/30'
-                              : 'bg-cyan-600/25 text-cyan-400 border-cyan-400/40 shadow-cyan-400/30'
-                          }
-                        `}
-                      >
-                        {p.role === PlayerRole.UNDERCOVER ? 'UNDERCOVER 臥底' : 'CIVILIAN 平民'}
+                      {/* 底部身分標籤 */}
+                      <div className="absolute left-1/2 -translate-x-1/2 bottom-6">
+                        <div className={`px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-widest border
+                          ${p.role === PlayerRole.UNDERCOVER
+                            ? 'bg-red-600/35 text-red-300 border-red-400/50 shadow-[0_0_18px_rgba(220,38,38,0.35)]'
+                            : 'bg-cyan-500/30 text-cyan-200 border-cyan-300/50 shadow-[0_0_18px_rgba(34,211,238,0.25)]'
+                          }`}>
+                          {p.role === PlayerRole.UNDERCOVER ? 'UNDERCOVER 臥底' : 'CIVILIAN 平民'}
+                        </div>
                       </div>
-
                     </div>
                   )}
+
 
                 </div>
               );
