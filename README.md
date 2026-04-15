@@ -12,7 +12,7 @@
 
 ---
 
-## 🛠️ 2. Supabase 資料庫與權限設定 (必做！)
+## 🛠️ 2. Supabase 資料庫與權限設定
 
 請在 Supabase 的 **SQL Editor** 執行以下指令：
 
