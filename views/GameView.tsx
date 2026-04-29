@@ -56,6 +56,9 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   }, [game.status, game.round, currentPlayer.message]);
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches) {
+      return;
+    }
     const timer = setTimeout(() => setRevealed(true), 1200);
     return () => clearTimeout(timer);
   }, []);
@@ -647,7 +650,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
       </div>
 
       <div className="grid lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8 space-y-6">
+        <div className="lg:col-span-8 space-y-6 order-2 lg:order-1">
           {(game.status === GameStatus.PLAYING || game.status === GameStatus.DEFENDING) && (
             <div className={`glass p-6 rounded-lg border-2 transition-all 
               ${!canIInput ? 'border-zinc-800/50 opacity-60 grayscale' : 'border-red-600/40 shadow-[0_0_40px_rgba(220,38,38,0.15)]'}`}>
@@ -795,8 +798,53 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
           </div>
         </div>
 
-        <div className="lg:col-span-4 space-y-6">
+        <div className="lg:col-span-4 space-y-6 order-1 lg:order-2">
           <div className="sticky top-24 space-y-8">
+            {/* Mobile-only: collapsible card */}
+            <div className="lg:hidden space-y-4">
+              <div className="w-full max-w-sm mx-auto">
+                <button
+                  type="button"
+                  onClick={() => setRevealed(!revealed)}
+                  className={`w-full inline-flex items-center justify-center gap-3 px-5 py-3 rounded-2xl border-2 transition-all duration-300 font-black text-lg tracking-[0.08em] shadow-[0_8px_24px_rgba(0,0,0,0.35)] ${revealed ? 'bg-zinc-700 border-zinc-500 text-white hover:bg-zinc-600' : 'bg-amber-500 border-amber-300 text-black hover:bg-amber-400 animate-[pulse_1.6s_ease-in-out_infinite]'}`}
+                >
+                  {revealed ? "隱藏我的卡片" : "查看我的身分"}
+                </button>
+              </div>
+
+              {revealed && (
+                <div className="w-full max-w-sm mx-auto aspect-[3/4.5] select-none">
+                  <div className={`relative w-full h-full bg-[#080808] rounded-3xl border border-white/10 overflow-hidden flex flex-col ${cardColor === 'red' ? 'shadow-[0_0_0_1px_rgba(220,38,38,0.15),0_0_24px_rgba(220,38,38,0.12)]' : cardColor === 'cyan' ? 'shadow-[0_0_0_1px_rgba(34,211,238,0.15),0_0_24px_rgba(34,211,238,0.12)]' : 'shadow-[0_0_0_1px_rgba(245,158,11,0.15),0_0_24px_rgba(245,158,11,0.12)]'}`}>
+                    <div className={`absolute top-0 inset-x-0 h-1.5 ${cardColor === 'red' ? 'bg-red-600 text-red-400' : cardColor === 'cyan' ? 'bg-cyan-400 text-cyan-300' : 'bg-amber-500 text-amber-300'} shadow-[0_0_6px_rgba(255,255,255,0.7),0_0_24px_currentColor]`}></div>
+                    <div className="pt-10 text-center relative z-10 px-6">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/5 mb-4 mx-auto">
+                        <span className={`w-1.5 h-1.5 rounded-full ${cardColor === 'red' ? 'bg-red-500' : cardColor === 'cyan' ? 'bg-cyan-400' : 'bg-amber-500'} animate-pulse`}></span>
+                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em]">Access Card</p>
+                      </div>
+                    </div>
+                    <div className="mt-10 pb-6 text-center relative z-10 px-6">
+                      <p className="text-[9px] text-zinc-500 font-black uppercase tracking-[0.4em] mb-1">PLAYER</p>
+                      <h2 className="text-3xl font-black text-white uppercase tracking-wider drop-shadow-lg">{currentPlayer.name}</h2>
+                    </div>
+                    <div className="flex-1 py-6 flex flex-col items-center justify-center relative px-6">
+                      <p className="text-[9px] text-zinc-500 font-black uppercase tracking-[0.5em] mb-3">Code Word</p>
+                      <div className={`w-full max-w-[280px] px-6 py-6 rounded-xl border text-center shadow-inner ${cardColor === 'red' ? 'border-red-500/40 bg-red-500/5 shadow-red-900/30' : cardColor === 'cyan' ? 'border-cyan-400/40 bg-cyan-400/5 shadow-cyan-900/30' : 'border-amber-400/40 bg-amber-400/5 shadow-amber-900/30'}`}>
+                        <p className={`font-black break-words leading-tight drop-shadow-xl ${getWordStyle(cardWord)} ${cardColor === 'red' ? 'text-red-500' : cardColor === 'cyan' ? 'text-cyan-400' : 'text-amber-500'}`}>{cardWord}</p>
+                      </div>
+                    </div>
+                    <div className="pb-12 pt-4 text-center relative z-10 px-8">
+                      <p className="mb-2 text-[9px] text-zinc-500 font-black uppercase tracking-[0.4em]">MISSION ROLE</p>
+                      <div className={`w-full h-[0.5px] mb-4 opacity-50 ${cardColor === 'red' ? 'bg-red-400/30' : cardColor === 'cyan' ? 'bg-cyan-300/30' : 'bg-amber-300/30'}`}></div>
+                      <div className="font-black text-sm uppercase tracking-[0.4em]">
+                        {isSpectator ? <div className="flex flex-col items-center text-zinc-300 gap-1.2"><span className="text-[11px] tracking-[0.1em]">COMMANDER</span><span className="text-[13px] tracking-normal">─ 指揮官 ─</span></div> : currentPlayer.role === PlayerRole.UNDERCOVER ? <div className="flex flex-col items-center text-red-500 gap-1.2"><span className="text-[11px] tracking-[0.1em]">UNDERCOVER</span><span className="text-[13px] tracking-normal">─ 臥底 ─</span></div> : <div className="flex flex-col items-center text-cyan-400 gap-1.2"><span className="text-[11px] tracking-[0.1em]">CIVILIAN</span><span className="text-[13px] tracking-normal">─ 平民 ─</span></div>}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="hidden lg:block">
             {/* 3D Flip Card Container */}
             <div 
               className="group perspective-[1200px] w-full max-w-sm mx-auto aspect-[3/4.5] cursor-pointer select-none" 
@@ -878,6 +926,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     {revealed ? "點擊以隱藏身分" : "點擊以查看身分"}
                  </p>
                </div>
+            </div>
             </div>
           </div>
         </div>
