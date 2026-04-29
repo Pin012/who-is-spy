@@ -549,16 +549,41 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
       {/* Force End Modal */}
       {showForceEndConfirm && <ForceEndModal />}
 
-      <button 
-        onClick={handleExitGame}
-        className="fixed top-4 right-4 z-[200] flex items-center gap-3 bg-black/60 backdrop-blur-md border border-white/10 hover:border-red-600/50 text-white px-5 py-2.5 rounded-full transition-all shadow-2xl hover:bg-red-950/20 active:scale-95 group"
-        title="退出房間"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-zinc-400 group-hover:text-red-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-        </svg>
-        <span className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-300 group-hover:text-white transition-colors">EXIT</span>
-      </button>
+      <div className="fixed top-4 right-4 z-[200] flex flex-col items-end gap-2.5">
+        <button 
+          onClick={handleExitGame}
+          className="flex items-center gap-3 bg-black/60 backdrop-blur-md border border-white/10 hover:border-red-600/50 text-white px-5 py-2.5 rounded-full transition-all shadow-2xl hover:bg-red-950/20 active:scale-95 group"
+          title="退出房間"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-zinc-400 group-hover:text-red-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-300 group-hover:text-white transition-colors">EXIT</span>
+        </button>
+
+        {currentPlayer.is_host && (
+          <div className="flex flex-wrap justify-end gap-2.5 max-w-[80vw]">
+            <button
+              onClick={() => setShowForceEndConfirm(true)}
+              className="group flex items-center gap-2.5 px-5 py-2.5 rounded-full border text-xs font-black tracking-[0.13em] uppercase transition-all duration-200 active:scale-95 backdrop-blur-xl bg-amber-700/95 border-amber-400/40 text-amber-100 hover:bg-amber-600/95 hover:border-amber-300/70 shadow-[0_12px_28px_rgba(120,53,15,0.45)] hover:shadow-[0_16px_40px_rgba(217,119,6,0.45)]"
+              title="結束遊戲並判定勝負"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0 text-amber-100 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>結束遊戲並判定勝負</span>
+            </button>
+
+            <button
+              onClick={togglePhase}
+              className="group flex items-center gap-2.5 px-5 py-2.5 rounded-full border text-xs font-black tracking-[0.13em] uppercase transition-all duration-200 active:scale-95 backdrop-blur-xl bg-red-700/95 border-red-400/40 text-red-100 hover:bg-red-600/95 hover:border-red-300/70 shadow-[0_12px_28px_rgba(127,29,29,0.45)] hover:shadow-[0_16px_40px_rgba(220,38,38,0.45)]"
+              title="主持人階段控制"
+            >
+              <span>{game.status === GameStatus.PLAYING ? '啟動投票階段' : game.status === GameStatus.DEFENDING ? '重啟投票程序' : '執行淘汰程序'}</span>
+            </button>
+          </div>
+        )}
+      </div>
 
       {showRoundBanner && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
@@ -601,6 +626,16 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
         </div>
 
         <div className="w-full md:w-auto flex flex-col gap-2 items-end">
+          <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-white/5 border border-white/10 w-full md:w-auto">
+            <div className="text-[10px] font-black uppercase tracking-[0.35em] text-zinc-500 whitespace-nowrap">人數資訊</div>
+            <div className="text-[12px] font-black tracking-widest whitespace-nowrap">
+              <span className="text-white">{alivePlayers.length}</span>
+              <span className="text-zinc-600 mx-1">/</span>
+              <span className="text-zinc-300">{players.filter(p => game.host_is_player || !p.is_host).length}</span>
+            </div>
+            <div className="text-[10px] text-zinc-400 font-bold tracking-[0.2em]">存活/總數</div>
+          </div>
+
           {/* 投票進度標示（投票階段全員可見） */}
           {game.status === GameStatus.VOTING && (
             <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-white/5 border border-white/10 w-full md:w-auto">
@@ -619,27 +654,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
             </div>
           )}
 
-          {currentPlayer.is_host && (
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              {/* 強制結算按鈕（主持人專屬，非遊戲結束時顯示） */}
-              <button
-                onClick={() => setShowForceEndConfirm(true)}
-                className="flex items-center gap-2 bg-amber-600/10 hover:bg-amber-600/25 border border-amber-600/40 hover:border-amber-500/70 text-amber-400 hover:text-amber-300 px-4 py-2.5 rounded-lg font-black uppercase tracking-[0.1em] transition-all text-xs shadow-lg active:scale-95 shrink-0"
-                title="強制結算目前局面"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>強制結束並結算</span>
-              </button>
-
-              {/* 主階段按鈕 */}
-              <button onClick={togglePhase} className="flex-1 md:flex-none bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-lg font-black uppercase tracking-[0.1em] transition-all hover:scale-105 active:scale-95 text-sm shadow-xl shadow-red-900/40 border border-white/10">
-                {game.status === GameStatus.PLAYING ? '啟動投票階段' : 
-                 game.status === GameStatus.DEFENDING ? '重啟投票程序' : '執行淘汰程序'}
-              </button>
-            </div>
-          )}
+          
         </div>
       </div>
 
