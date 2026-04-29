@@ -600,26 +600,26 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
           </div>
         </div>
 
-        {currentPlayer.is_host && (
-          <div className="w-full md:w-auto flex flex-col gap-2 items-end">
-            {/* 投票進度標示（僅在投票階段顯示） */}
-            {game.status === GameStatus.VOTING && (
-              <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-white/5 border border-white/10 w-full md:w-auto">
-                <div className="text-[11px] font-black uppercase tracking-widest whitespace-nowrap">
-                  <span className="text-green-400">{votedCount}人已投票</span>
-                  <span className="text-zinc-600 mx-2">/</span>
-                  <span className={notVotedCount > 0 ? 'text-zinc-400' : 'text-zinc-600'}>{notVotedCount}人未投票</span>
-                </div>
-                {/* 進度條 */}
-                <div className="w-20 h-1.5 bg-white/10 rounded-full overflow-hidden ml-1">
-                  <div 
-                    className="h-full bg-green-500 rounded-full transition-all duration-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"
-                    style={{ width: eligibleVoters.length > 0 ? `${(votedCount / eligibleVoters.length) * 100}%` : '0%' }}
-                  ></div>
-                </div>
+        <div className="w-full md:w-auto flex flex-col gap-2 items-end">
+          {/* 投票進度標示（投票階段全員可見） */}
+          {game.status === GameStatus.VOTING && (
+            <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-white/5 border border-white/10 w-full md:w-auto">
+              <div className="text-[11px] font-black uppercase tracking-widest whitespace-nowrap">
+                <span className="text-green-400">{votedCount}人已投票</span>
+                <span className="text-zinc-600 mx-2">/</span>
+                <span className={notVotedCount > 0 ? 'text-zinc-400' : 'text-zinc-600'}>{notVotedCount}人未投票</span>
               </div>
-            )}
+              {/* 進度條 */}
+              <div className="w-20 h-1.5 bg-white/10 rounded-full overflow-hidden ml-1">
+                <div 
+                  className="h-full bg-green-500 rounded-full transition-all duration-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"
+                  style={{ width: eligibleVoters.length > 0 ? `${(votedCount / eligibleVoters.length) * 100}%` : '0%' }}
+                ></div>
+              </div>
+            </div>
+          )}
 
+          {currentPlayer.is_host && (
             <div className="flex items-center gap-3 w-full md:w-auto">
               {/* 強制結算按鈕（主持人專屬，非遊戲結束時顯示） */}
               <button
@@ -639,8 +639,8 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                  game.status === GameStatus.DEFENDING ? '重啟投票程序' : '執行淘汰程序'}
               </button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-12 gap-6">
