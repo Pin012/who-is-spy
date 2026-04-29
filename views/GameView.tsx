@@ -78,6 +78,38 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
 
   const isSuspect = game.status===GameStatus.DEFENDING&&players.some(p=>p.id===currentPlayer.id&&game.suspect_ids?.includes(p.id));
 
+  const calculateForceSettleResult = () => {
+    const gamePlayers = players.filter(p => game.host_is_player || !p.is_host);
+    const totalPlayers = gamePlayers.length;
+    const totalUndercovers = gamePlayers.filter(p => p.role === PlayerRole.UNDERCOVER).length;
+    const totalCivilians = gamePlayers.filter(p => p.role === PlayerRole.CIVILIAN).length;
+    const aliveUndercovers = gamePlayers.filter(p => p.is_alive && p.role === PlayerRole.UNDERCOVER).length;
+    const deadUndercovers = totalUndercovers - aliveUndercovers;
+    const deadCivilians = gamePlayers.filter(p => !p.is_alive && p.role === PlayerRole.CIVILIAN).length;
+
+    const undercoverRatio = totalUndercovers > 0 ? totalUndercovers / totalPlayers : 0;
+    const expectedCivilianDeaths = totalPlayers * (1 - undercoverRatio) * undercoverRatio;
+    const normalizedCivilianMistake = expectedCivilianDeaths > 0 ? Math.min(1, deadCivilians / expectedCivilianDeaths) : 0;
+    const captureRate = totalUndercovers > 0 ? deadUndercovers / totalUndercovers : 0;
+    const survivalRate = totalUndercovers > 0 ? aliveUndercovers / totalUndercovers : 0;
+
+    const civilianScore = captureRate * 100 - normalizedCivilianMistake * 35;
+    const undercoverScore = survivalRate * 100;
+    const winner = civilianScore >= undercoverScore ? 'civilian' : 'undercover';
+
+    return {
+      winner,
+      totalUndercovers,
+      deadUndercovers,
+      deadCivilians,
+      captureRate,
+      survivalRate,
+      normalizedCivilianMistake,
+      civilianScore: Math.round(civilianScore * 10) / 10,
+      undercoverScore: Math.round(undercoverScore * 10) / 10,
+    };
+  };
+
   // ── 投票統計 ──
   const eligibleVoters = players.filter(p => p.is_alive && (game.host_is_player || !p.is_host));
   const votedCount = eligibleVoters.filter(p => p.voted_for).length;
@@ -115,19 +147,11 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   // ── 強制結束遊戲 ──
   const handleForceEndGame = async () => {
     if (!supabase || !currentPlayer.is_host) return;
-
-    const gamePlayers = players.filter(p => game.host_is_player || !p.is_host);
-    const aliveCivilians = gamePlayers.filter(p => p.is_alive && p.role === PlayerRole.CIVILIAN).length;
-    const aliveUndercovers = gamePlayers.filter(p => p.is_alive && p.role === PlayerRole.UNDERCOVER).length;
-    const deadCivilians = gamePlayers.filter(p => !p.is_alive && p.role === PlayerRole.CIVILIAN).length;
-    const deadUndercovers = gamePlayers.filter(p => !p.is_alive && p.role === PlayerRole.UNDERCOVER).length;
-
-    // 強制結束：臥底全死 → 平民勝；否則臥底勝
-    const winner = aliveUndercovers === 0 ? 'civilian' : 'undercover';
+    const settlement = calculateForceSettleResult();
 
     await supabase!.from('games').update({
       status: GameStatus.FINISHED,
-      winner_team: winner,
+      winner_team: settlement.winner,
     }).eq('id', game.id);
 
     setShowForceEndConfirm(false);
@@ -247,6 +271,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   const alivePlayers = players.filter(p => p.is_alive && (game.host_is_player || !p.is_host));
   const isGameOver = game.status === GameStatus.FINISHED;
   const isCivilianWin = game.winner_team === 'civilian';
+  const forceSettlement = calculateForceSettleResult();
 
   const myMessageOnServer = (currentPlayer.message || '').trim().length > 0;
   
@@ -317,7 +342,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
     const aliveUndercovers = gamePlayers.filter(p => p.is_alive && p.role === PlayerRole.UNDERCOVER).length;
     const deadCivilians = gamePlayers.filter(p => !p.is_alive && p.role === PlayerRole.CIVILIAN).length;
     const deadUndercovers = gamePlayers.filter(p => !p.is_alive && p.role === PlayerRole.UNDERCOVER).length;
-    const projectedWinner = aliveUndercovers === 0 ? 'civilian' : 'undercover';
+    const projectedWinner = forceSettlement.winner;
 
     return (
       <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
@@ -387,6 +412,13 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                 </p>
               </div>
             </div>
+
+            <div className="rounded-xl px-4 py-3 border border-white/10 bg-black/40 space-y-2">
+              <p className="text-[9px] font-black uppercase tracking-[0.35em] text-zinc-400">公平結算公式</p>
+              <p className="text-[11px] text-zinc-300 leading-relaxed">
+                平民分數 = 抓臥底率 × 100 − 誤殺懲罰 × 35；臥底分數 = 臥底存活率 × 100
+              </p>
+            </div>
           </div>
 
           {/* Actions */}
@@ -455,6 +487,27 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                </div>
              ))}
            </div>
+        </div>
+
+        <div className="bg-black/70 p-6 rounded-lg border border-white/10 relative z-10 text-left">
+          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.6em] mb-4">Force Settlement Detail 中途結算明細</p>
+          <div className="grid md:grid-cols-2 gap-4 text-sm">
+            <div className="space-y-2">
+              <p className="text-cyan-300 font-bold">平民隊</p>
+              <p className="text-zinc-300">抓臥底率：{forceSettlement.deadUndercovers} / {forceSettlement.totalUndercovers}（{(forceSettlement.captureRate * 100).toFixed(1)}%）</p>
+              <p className="text-zinc-300">誤殺懲罰：{(forceSettlement.normalizedCivilianMistake * 100).toFixed(1)}%</p>
+              <p className="text-cyan-400 font-black">平民最終分：{forceSettlement.civilianScore.toFixed(1)}</p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-red-300 font-bold">臥底隊</p>
+              <p className="text-zinc-300">臥底存活率：{(forceSettlement.survivalRate * 100).toFixed(1)}%</p>
+              <p className="text-zinc-300">存活臥底：{forceSettlement.totalUndercovers - forceSettlement.deadUndercovers} / {forceSettlement.totalUndercovers}</p>
+              <p className="text-red-400 font-black">臥底最終分：{forceSettlement.undercoverScore.toFixed(1)}</p>
+            </div>
+          </div>
+          <p className="mt-4 text-zinc-400 text-xs">
+            判定規則：分數較高隊伍獲勝；同分時平民勝（代表已有效抑制臥底擴散）。
+          </p>
         </div>
 
         {currentPlayer.is_host ? (
@@ -547,30 +600,26 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
           </div>
         </div>
 
-        {currentPlayer.is_host && (
-          <div className="w-full md:w-auto flex flex-col gap-2 items-end">
-            {/* 投票進度標示（僅在投票階段顯示） */}
-            {game.status === GameStatus.VOTING && (
-              <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-white/5 border border-white/10 w-full md:w-auto">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.8)]"></span>
-                  <span className="text-[11px] font-black text-green-400 uppercase tracking-widest">{votedCount} 已投票</span>
-                </div>
-                <div className="w-px h-4 bg-white/10"></div>
-                <div className="flex items-center gap-1.5">
-                  <span className={`w-2 h-2 rounded-full ${notVotedCount > 0 ? 'bg-zinc-500 animate-pulse' : 'bg-zinc-700'}`}></span>
-                  <span className={`text-[11px] font-black uppercase tracking-widest ${notVotedCount > 0 ? 'text-zinc-400' : 'text-zinc-600'}`}>{notVotedCount} 未投票</span>
-                </div>
-                {/* 進度條 */}
-                <div className="w-20 h-1.5 bg-white/10 rounded-full overflow-hidden ml-1">
-                  <div 
-                    className="h-full bg-green-500 rounded-full transition-all duration-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"
-                    style={{ width: eligibleVoters.length > 0 ? `${(votedCount / eligibleVoters.length) * 100}%` : '0%' }}
-                  ></div>
-                </div>
+        <div className="w-full md:w-auto flex flex-col gap-2 items-end">
+          {/* 投票進度標示（投票階段全員可見） */}
+          {game.status === GameStatus.VOTING && (
+            <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-white/5 border border-white/10 w-full md:w-auto">
+              <div className="text-[11px] font-black uppercase tracking-widest whitespace-nowrap">
+                <span className="text-green-400">{votedCount}人已投票</span>
+                <span className="text-zinc-600 mx-2">/</span>
+                <span className={notVotedCount > 0 ? 'text-zinc-400' : 'text-zinc-600'}>{notVotedCount}人未投票</span>
               </div>
-            )}
+              {/* 進度條 */}
+              <div className="w-20 h-1.5 bg-white/10 rounded-full overflow-hidden ml-1">
+                <div 
+                  className="h-full bg-green-500 rounded-full transition-all duration-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"
+                  style={{ width: eligibleVoters.length > 0 ? `${(votedCount / eligibleVoters.length) * 100}%` : '0%' }}
+                ></div>
+              </div>
+            </div>
+          )}
 
+          {currentPlayer.is_host && (
             <div className="flex items-center gap-3 w-full md:w-auto">
               {/* 強制結算按鈕（主持人專屬，非遊戲結束時顯示） */}
               <button
@@ -581,7 +630,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>強制結算</span>
+                <span>強制結束並結算</span>
               </button>
 
               {/* 主階段按鈕 */}
@@ -590,8 +639,8 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                  game.status === GameStatus.DEFENDING ? '重啟投票程序' : '執行淘汰程序'}
               </button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-12 gap-6">
