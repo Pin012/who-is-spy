@@ -416,7 +416,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
             <div className="rounded-xl px-4 py-3 border border-white/10 bg-black/40 space-y-2">
               <p className="text-[9px] font-black uppercase tracking-[0.35em] text-zinc-400">結算公式</p>
               <p className="text-[11px] text-zinc-300 leading-relaxed">
-                平民分數 = 抓臥底率 × 100 − 誤殺懲罰 × 35；<br />臥底分數 = 臥底存活率 × 100
+                平民分數 = 抓臥底率 × 100 − 誤殺懲罰 × 35<br />臥底分數 = 臥底存活率 × 100
               </p>
             </div>
           </div>
