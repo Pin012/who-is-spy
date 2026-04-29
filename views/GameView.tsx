@@ -565,7 +565,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
 
             <button
               onClick={togglePhase}
-              className="group flex items-center gap-2.5 px-5 py-2.5 rounded-xl border text-xs font-black tracking-[0.13em] uppercase transition-all duration-200 active:scale-95 backdrop-blur-xl bg-red-700/95 border-red-400/40 text-red-100 hover:bg-red-600/95 hover:border-red-300/70 shadow-[0_12px_28px_rgba(127,29,29,0.45)] hover:shadow-[0_16px_40px_rgba(220,38,38,0.45)]"
+              className="group flex items-center gap-2.5 px-5 py-2.5 rounded-md border text-xs font-black tracking-[0.13em] uppercase transition-all duration-200 active:scale-95 backdrop-blur-xl bg-red-700/95 border-red-400/40 text-red-100 hover:bg-red-600/95 hover:border-red-300/70 shadow-[0_12px_28px_rgba(127,29,29,0.45)] hover:shadow-[0_16px_40px_rgba(220,38,38,0.45)]"
               title="主持人階段控制"
             >
               <span>{game.status === GameStatus.PLAYING ? '啟動投票階段' : game.status === GameStatus.DEFENDING ? '重啟投票程序' : '執行淘汰程序'}</span>
@@ -575,7 +575,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
 
         <button 
           onClick={handleExitGame}
-          className="flex items-center gap-3 bg-black/60 backdrop-blur-md border border-white/10 hover:border-red-600/50 text-white px-5 py-2.5 rounded-full transition-all shadow-2xl hover:bg-red-950/20 active:scale-95 group"
+          className="flex items-center gap-3 bg-black/60 backdrop-blur-md border border-white/10 hover:border-red-600/50 text-white px-5 py-2.5 rounded-md transition-all shadow-2xl hover:bg-red-950/20 active:scale-95 group"
           title="退出房間"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-zinc-400 group-hover:text-red-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
