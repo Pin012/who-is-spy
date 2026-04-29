@@ -626,6 +626,16 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
         </div>
 
         <div className="w-full md:w-auto flex flex-col gap-2 items-end">
+          <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-white/5 border border-white/10 w-full md:w-auto">
+            <div className="text-[10px] font-black uppercase tracking-[0.35em] text-zinc-500 whitespace-nowrap">人數資訊</div>
+            <div className="text-[12px] font-black tracking-widest whitespace-nowrap">
+              <span className="text-white">{alivePlayers.length}</span>
+              <span className="text-zinc-600 mx-1">/</span>
+              <span className="text-zinc-300">{players.filter(p => game.host_is_player || !p.is_host).length}</span>
+            </div>
+            <div className="text-[10px] text-zinc-400 font-bold tracking-[0.2em]">存活/總數</div>
+          </div>
+
           {/* 投票進度標示（投票階段全員可見） */}
           {game.status === GameStatus.VOTING && (
             <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-white/5 border border-white/10 w-full md:w-auto">
