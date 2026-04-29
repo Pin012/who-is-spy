@@ -802,15 +802,13 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
           <div className="sticky top-24 space-y-8">
             {/* Mobile-only: collapsible card */}
             <div className="lg:hidden space-y-4">
-              <div className="text-center">
+              <div className="w-full max-w-sm mx-auto">
                 <button
                   type="button"
                   onClick={() => setRevealed(!revealed)}
-                  className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                  className={`w-full inline-flex items-center justify-center gap-3 px-5 py-3 rounded-2xl border-2 transition-all duration-300 font-black text-lg tracking-[0.08em] shadow-[0_8px_24px_rgba(0,0,0,0.35)] ${revealed ? 'bg-zinc-700 border-zinc-500 text-white hover:bg-zinc-600' : 'bg-amber-500 border-amber-300 text-black hover:bg-amber-400 animate-[pulse_1.6s_ease-in-out_infinite]'}`}
                 >
-                  <p className="text-[11px] text-zinc-300 font-bold tracking-[0.15em]">
-                    {revealed ? "隱藏我的卡片" : "查看我的身分"}
-                  </p>
+                  {revealed ? "隱藏我的卡片" : "查看我的身分"}
                 </button>
               </div>
 
