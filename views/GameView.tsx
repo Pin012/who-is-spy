@@ -643,8 +643,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
             </div>
           )}
 
-          
-        </div>
+
       </div>
 
       <div className="grid lg:grid-cols-12 gap-6">
