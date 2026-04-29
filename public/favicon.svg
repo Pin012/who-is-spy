@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Black frame detective glasses icon">
+  <!-- Left frame -->
+  <rect x="34" y="78" width="84" height="84" rx="26" fill="none" stroke="#111111" stroke-width="14"/>
+
+  <!-- Right frame -->
+  <rect x="138" y="78" width="84" height="84" rx="26" fill="none" stroke="#111111" stroke-width="14"/>
+
+  <!-- Bridge -->
+  <rect x="116" y="112" width="24" height="16" rx="8" fill="#111111"/>
+
+  <!-- Left temple -->
+  <path d="M34 112 L16 106" fill="none" stroke="#111111" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- Right temple -->
+  <path d="M222 112 L240 106" fill="none" stroke="#111111" stroke-width="12" stroke-linecap="round"/>
+</svg>
