@@ -354,7 +354,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
             </svg>
             <div>
               <p className="text-[9px] font-black text-amber-500 uppercase tracking-[0.5em]">Force Terminate</p>
-              <p className="text-white font-black text-sm uppercase tracking-widest">強制結算任務</p>
+              <p className="text-white font-black text-sm uppercase tracking-widest">任務結算</p>
             </div>
           </div>
 
@@ -554,7 +554,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
           <>
             <button
               onClick={() => setShowForceEndConfirm(true)}
-              className="group flex items-center gap-2.5 px-5 py-2.5 rounded-xl border text-xs font-black tracking-[0.13em] uppercase transition-all duration-200 active:scale-95 backdrop-blur-xl bg-amber-700/95 border-amber-400/40 text-amber-100 hover:bg-amber-600/95 hover:border-amber-300/70 shadow-[0_12px_28px_rgba(120,53,15,0.45)] hover:shadow-[0_16px_40px_rgba(217,119,6,0.45)]"
+              className="group flex items-center gap-2.5 px-5 py-2.5 rounded-md border text-xs font-black tracking-[0.13em] uppercase transition-all duration-200 active:scale-95 backdrop-blur-xl bg-amber-700/95 border-amber-400/40 text-amber-100 hover:bg-amber-600/95 hover:border-amber-300/70 shadow-[0_12px_28px_rgba(120,53,15,0.45)] hover:shadow-[0_16px_40px_rgba(217,119,6,0.45)]"
               title="結束遊戲並判定勝負"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0 text-amber-100 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
