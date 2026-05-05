@@ -806,7 +806,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                 <button
                   type="button"
                   onClick={() => setRevealed(!revealed)}
-                  className={`w-full inline-flex items-center justify-center gap-3 px-5 py-3 rounded-2xl border-2 transition-all duration-300 font-black text-lg tracking-[0.08em] shadow-[0_8px_24px_rgba(0,0,0,0.35)] ${revealed ? 'bg-zinc-700 border-zinc-500 text-white hover:bg-zinc-600' : 'bg-amber-500 border-amber-300 text-black hover:bg-amber-400 animate-[pulse_1.6s_ease-in-out_infinite]'}`}
+                  className={`w-full inline-flex items-center justify-center gap-3 px-5 py-3 rounded-md border-2 transition-all duration-300 font-black text-lg tracking-[0.08em] shadow-[0_8px_24px_rgba(0,0,0,0.35)] ${revealed ? 'bg-zinc-700 border-zinc-500 text-white hover:bg-zinc-600' : 'bg-amber-500 border-amber-300 text-black hover:bg-amber-400 animate-[pulse_1.6s_ease-in-out_infinite]'}`}
                 >
                   {revealed ? "隱藏我的卡片" : "查看我的身分"}
                 </button>
