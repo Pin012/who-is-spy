@@ -3,7 +3,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 const HISTORY_KEY = 'spy_recent_word_pairs';
 const HISTORY_LIMIT = 30;
 const CATEGORY_ROTATION = [
-  '食物', '交通工具', '運動', '影視娛樂', '科技產品', '職場情境', '旅遊場景', '校園生活', '流行文化'
+  '食物', '交通工具', '運動', '影視娛樂', '科技產品', '職場情境', '旅遊場景', '校園生活', '流行文化', '日常用品', '動物', '植物', '地標建築', '網路社群', '金融消費', '永續淨零', 'AI與自動化', '新能源'
 ];
 
 interface WordPair {
@@ -46,7 +46,8 @@ const buildPrompt = (recentPairs: WordPair[]) => {
 3) 禁止同義詞、上下位詞過近到無法區分（例如「手機/行動電話」）。
 4) 禁止冷僻專有名詞，優先大眾可理解詞彙。
 5) ${avoidLine}
-6) 直接回傳 JSON 物件，欄位為 civilianWord 與 undercoverWord。`;
+6) 可選擇具國際視野或未來趨勢感的詞彙，但仍需日常可理解。
+7) 直接回傳 JSON 物件，欄位為 civilianWord 與 undercoverWord。`;
 };
 
 export const generateWordPair = async () => {
