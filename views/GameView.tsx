@@ -419,7 +419,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
             <div className="rounded-xl px-4 py-3 border border-white/10 bg-black/40 space-y-2">
               <p className="text-[9px] font-black uppercase tracking-[0.35em] text-zinc-400">結算公式</p>
               <p className="text-[11px] text-zinc-300 leading-relaxed">
-                平民分數 = 抓臥底率 × 100 − 誤殺懲罰 × 35<br />臥底分數 = 臥底存活率 × 100
+                平民分數 = 臥底死亡率 × 100 − 誤殺懲罰 × 35<br />臥底分數 = 臥底存活率 × 100
               </p>
             </div>
           </div>
@@ -497,7 +497,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
           <div className="grid md:grid-cols-2 gap-4 text-sm">
             <div className="space-y-2">
               <p className="text-cyan-300 font-bold">平民隊</p>
-              <p className="text-zinc-300">抓臥底率：{forceSettlement.deadUndercovers} / {forceSettlement.totalUndercovers}（{(forceSettlement.captureRate * 100).toFixed(1)}%）</p>
+              <p className="text-zinc-300">臥底死亡率：{forceSettlement.deadUndercovers} / {forceSettlement.totalUndercovers}（{(forceSettlement.captureRate * 100).toFixed(1)}%）</p>
               <p className="text-zinc-300">誤殺懲罰：{(forceSettlement.normalizedCivilianMistake * 100).toFixed(1)}%</p>
               <p className="text-cyan-400 font-black">平民最終分：{forceSettlement.civilianScore.toFixed(1)}</p>
             </div>
