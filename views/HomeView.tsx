@@ -132,11 +132,14 @@ const HomeView: React.FC<HomeViewProps> = ({ onCreateClick, onJoin, findGame, lo
               { id: "RULE_02", title: "💬 描述討論", desc: "每個人輪流用一句話描述自己的詞彙。描述不能太明顯（會被臥底猜到），也不能太模糊（會被當成臥底）。" },
               { id: "RULE_03", title: "🗳️ 投票淘汰", desc: "所有玩家描述完後，進行投票抓出臥底。如果臥底全被投出，平民獲勝；若平民人數少於 3 人且仍有臥底，臥底獲勝。" }
             ].map((rule, idx) => (
-              <div key={idx} className="bg-white/[0.02] p-4 md:p-6 rounded-2xl border border-white/5 space-y-1.5 md:space-y-2 group hover:bg-white/[0.05] transition-all relative overflow-hidden">
+              <div key={idx} className="bg-gradient-to-br from-zinc-900/90 to-zinc-950/90 p-4 md:p-6 rounded-2xl border-2 border-red-500/35 shadow-[0_0_0_1px_rgba(255,255,255,0.06)] space-y-1.5 md:space-y-2 group hover:border-red-400/60 hover:from-zinc-900 hover:to-black transition-all relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-2 md:p-3 opacity-10 group-hover:opacity-30 transition-opacity">
                    <span className="text-[8px] md:text-[9px] font-black font-mono text-zinc-500 tracking-widest">{rule.id}</span>
                 </div>
-                <h3 className="text-white text-sm md:text-lg font-black flex items-center gap-2 group-hover:text-red-500 transition-colors">
+                <div className="inline-flex items-center rounded-full bg-red-600/15 border border-red-500/35 px-2.5 py-1 mb-1">
+                  <span className="text-[9px] md:text-[10px] font-black text-red-300 tracking-[0.2em]">MISSION CARD</span>
+                </div>
+                <h3 className="text-white text-sm md:text-lg font-black flex items-center gap-2 group-hover:text-red-400 transition-colors">
                   {rule.title}
                 </h3>
                 <p className="text-[11px] md:text-sm text-zinc-300 leading-relaxed font-bold">
