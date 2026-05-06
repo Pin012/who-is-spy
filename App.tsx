@@ -334,7 +334,8 @@ const App: React.FC = () => {
         <div className="relative z-10">{renderContent()}</div>
         {showA2HS && a2hsPlatform && (
           <div className="fixed bottom-4 left-4 right-4 z-40 md:hidden">
-            <div className="rounded-2xl border border-red-500/30 bg-[#121212]/95 backdrop-blur p-4 shadow-2xl">
+            <div className="rounded-2xl border-2 border-red-400/70 bg-[#0a0a0a]/95 backdrop-blur p-1 shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_24px_60px_rgba(0,0,0,0.65)]">
+              <div className="rounded-[0.9rem] border border-zinc-700/80 bg-gradient-to-b from-zinc-900 to-zinc-950 p-4">
               <p className="text-[10px] tracking-[0.3em] uppercase text-red-400 font-bold mb-2">快捷啟動</p>
               {a2hsPlatform === 'ios' ? (
                 <>
@@ -363,6 +364,7 @@ const App: React.FC = () => {
                 <button onClick={neverShowA2HS} className="rounded-lg border border-zinc-700 text-zinc-400 text-sm px-3 py-2">
                   不再提示
                 </button>
+              </div>
               </div>
             </div>
           </div>
