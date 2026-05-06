@@ -34,6 +34,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   const [showRoundBanner, setShowRoundBanner] = useState(false);
   const [isEliminating, setIsEliminating] = useState(false);
   const [justEliminatedId, setJustEliminatedId] = useState<string | null>(null);
+  const [showForceEndConfirm, setShowForceEndConfirm] = useState(false);
 
   const [instructionKey, setInstructionKey] = useState(0);
   const prevPlayersRef = useRef<Player[]>([]);
@@ -77,6 +78,43 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
 
   const isSuspect = game.status===GameStatus.DEFENDING&&players.some(p=>p.id===currentPlayer.id&&game.suspect_ids?.includes(p.id));
 
+  const calculateForceSettleResult = () => {
+    const gamePlayers = players.filter(p => game.host_is_player || !p.is_host);
+    const totalPlayers = gamePlayers.length;
+    const totalUndercovers = gamePlayers.filter(p => p.role === PlayerRole.UNDERCOVER).length;
+    const totalCivilians = gamePlayers.filter(p => p.role === PlayerRole.CIVILIAN).length;
+    const aliveUndercovers = gamePlayers.filter(p => p.is_alive && p.role === PlayerRole.UNDERCOVER).length;
+    const deadUndercovers = totalUndercovers - aliveUndercovers;
+    const deadCivilians = gamePlayers.filter(p => !p.is_alive && p.role === PlayerRole.CIVILIAN).length;
+
+    const undercoverRatio = totalUndercovers > 0 ? totalUndercovers / totalPlayers : 0;
+    const expectedCivilianDeaths = totalPlayers * (1 - undercoverRatio) * undercoverRatio;
+    const normalizedCivilianMistake = expectedCivilianDeaths > 0 ? Math.min(1, deadCivilians / expectedCivilianDeaths) : 0;
+    const captureRate = totalUndercovers > 0 ? deadUndercovers / totalUndercovers : 0;
+    const survivalRate = totalUndercovers > 0 ? aliveUndercovers / totalUndercovers : 0;
+
+    const civilianScore = captureRate * 100 - normalizedCivilianMistake * 35;
+    const undercoverScore = survivalRate * 100;
+    const winner = civilianScore >= undercoverScore ? 'civilian' : 'undercover';
+
+    return {
+      winner,
+      totalUndercovers,
+      deadUndercovers,
+      deadCivilians,
+      captureRate,
+      survivalRate,
+      normalizedCivilianMistake,
+      civilianScore: Math.round(civilianScore * 10) / 10,
+      undercoverScore: Math.round(undercoverScore * 10) / 10,
+    };
+  };
+
+  // ── 投票統計 ──
+  const eligibleVoters = players.filter(p => p.is_alive && (game.host_is_player || !p.is_host));
+  const votedCount = eligibleVoters.filter(p => p.voted_for).length;
+  const notVotedCount = eligibleVoters.length - votedCount;
+
   const handleVote = async (targetId: string) => {
     if (!currentPlayer.is_alive || game.status !== GameStatus.VOTING || !supabase || voting) return;
     setVoting(true);
@@ -106,12 +144,24 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
     }
   };
 
+  // ── 強制結束遊戲 ──
+  const handleForceEndGame = async () => {
+    if (!supabase || !currentPlayer.is_host) return;
+    const settlement = calculateForceSettleResult();
+
+    await supabase!.from('games').update({
+      status: GameStatus.FINISHED,
+      winner_team: settlement.winner,
+    }).eq('id', game.id);
+
+    setShowForceEndConfirm(false);
+  };
+
   const togglePhase = async () => {
     if (!supabase) return;
     
     if (game.status === GameStatus.VOTING) {
       const votes: Record<string, number> = {};
-      const eligibleVoters = players.filter(p => p.is_alive && (game.host_is_player || !p.is_host));
       eligibleVoters.forEach(p => { if (p.voted_for) votes[p.voted_for] = (votes[p.voted_for] || 0) + 1; });
 
       const voteValues = Object.values(votes);
@@ -171,13 +221,12 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
 
   const handleResetWithMode = async (hostIsPlayer: boolean) => {
     if (!supabase || !currentPlayer.is_host) return;
-    // 重置所有玩家為準備狀態
     await supabase!.from('players').update({ 
       is_alive: true, 
       role: PlayerRole.UNKNOWN, 
       voted_for: null, 
       message: null 
-    }).eq('id', currentPlayer.id); // 先更新自己
+    }).eq('id', currentPlayer.id);
     
     await supabase!.from('players').update({ 
       is_alive: true, 
@@ -186,7 +235,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
       message: null 
     }).eq('game_id', game.id);
 
-    // 重置遊戲資訊，觸發所有人回到大廳
     await supabase!.from('games').update({ 
       status: GameStatus.LOBBY, 
       civilian_word: null, 
@@ -201,9 +249,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   const handleTerminateMission = async () => {
     if (!supabase || !currentPlayer.is_host) return;
     if (confirm("確定要徹底終結此房間嗎？所有玩家將退回首頁。")) {
-      // 刪除所有玩家
       await supabase!.from('players').delete().eq('game_id', game.id);
-      // 刪除遊戲房間
       await supabase!.from('games').delete().eq('id', game.id);
       onExit();
     }
@@ -225,12 +271,13 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   const alivePlayers = players.filter(p => p.is_alive && (game.host_is_player || !p.is_host));
   const isGameOver = game.status === GameStatus.FINISHED;
   const isCivilianWin = game.winner_team === 'civilian';
+  const forceSettlement = calculateForceSettleResult();
 
   const myMessageOnServer = (currentPlayer.message || '').trim().length > 0;
   
   const canSeeOthersMessages = 
     isSpectator || 
-    !currentPlayer.is_alive || // 修改：被淘汰者可以看到訊息
+    !currentPlayer.is_alive ||
     sentThisTurn || 
     myMessageOnServer || 
     game.status === GameStatus.VOTING;
@@ -288,6 +335,112 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
       ? 'red' 
       : 'cyan';
 
+  // ── 強制結束確認 Modal ──
+  const ForceEndModal = () => {
+    const gamePlayers = players.filter(p => game.host_is_player || !p.is_host);
+    const aliveCivilians = gamePlayers.filter(p => p.is_alive && p.role === PlayerRole.CIVILIAN).length;
+    const aliveUndercovers = gamePlayers.filter(p => p.is_alive && p.role === PlayerRole.UNDERCOVER).length;
+    const deadCivilians = gamePlayers.filter(p => !p.is_alive && p.role === PlayerRole.CIVILIAN).length;
+    const deadUndercovers = gamePlayers.filter(p => !p.is_alive && p.role === PlayerRole.UNDERCOVER).length;
+    const projectedWinner = forceSettlement.winner;
+
+    return (
+      <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="bg-[#0d0d0d] border border-white/15 rounded-2xl shadow-[0_0_80px_rgba(0,0,0,0.8)] max-w-sm w-full mx-4 overflow-hidden">
+          {/* Header */}
+          <div className="bg-amber-600/20 border-b border-amber-600/30 px-6 py-4 flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            </svg>
+            <div>
+              <p className="text-[9px] font-black text-amber-500 uppercase tracking-[0.5em]">Force Terminate</p>
+              <p className="text-white font-black text-sm uppercase tracking-widest">強制結算任務</p>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="px-6 py-5 space-y-4">
+            <p className="text-zinc-400 text-xs font-bold">目前戰況將作為最終結果進行結算：</p>
+
+            <div className="grid grid-cols-2 gap-3">
+              {/* Civilians */}
+              <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-xl p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
+                  <p className="text-[9px] font-black text-cyan-400 uppercase tracking-[0.4em]">Civilians 平民</p>
+                </div>
+                <div className="flex justify-between items-end">
+                  <div className="text-center">
+                    <p className="text-2xl font-black text-cyan-300">{aliveCivilians}</p>
+                    <p className="text-[8px] text-zinc-500 uppercase tracking-widest font-bold">存活</p>
+                  </div>
+                  <div className="text-zinc-600 text-lg font-black">/</div>
+                  <div className="text-center">
+                    <p className="text-2xl font-black text-zinc-500">{deadCivilians}</p>
+                    <p className="text-[8px] text-zinc-600 uppercase tracking-widest font-bold">陣亡</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Undercovers */}
+              <div className="bg-red-600/5 border border-red-600/20 rounded-xl p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                  <p className="text-[9px] font-black text-red-500 uppercase tracking-[0.4em]">Undercover 臥底</p>
+                </div>
+                <div className="flex justify-between items-end">
+                  <div className="text-center">
+                    <p className="text-2xl font-black text-red-400">{aliveUndercovers}</p>
+                    <p className="text-[8px] text-zinc-500 uppercase tracking-widest font-bold">存活</p>
+                  </div>
+                  <div className="text-zinc-600 text-lg font-black">/</div>
+                  <div className="text-center">
+                    <p className="text-2xl font-black text-zinc-500">{deadUndercovers}</p>
+                    <p className="text-[8px] text-zinc-600 uppercase tracking-widest font-bold">陣亡</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Projected winner */}
+            <div className={`rounded-xl px-4 py-3 border flex items-center gap-3 ${projectedWinner === 'civilian' ? 'bg-cyan-500/10 border-cyan-500/30' : 'bg-red-600/10 border-red-600/30'}`}>
+              <span className="text-2xl">{projectedWinner === 'civilian' ? '👮' : '🕵️'}</span>
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[0.4em] text-zinc-400">Projected Winner</p>
+                <p className={`font-black text-sm uppercase tracking-wider ${projectedWinner === 'civilian' ? 'text-cyan-400' : 'text-red-500'}`}>
+                  {projectedWinner === 'civilian' ? '平民獲勝' : '臥底獲勝'}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-xl px-4 py-3 border border-white/10 bg-black/40 space-y-2">
+              <p className="text-[9px] font-black uppercase tracking-[0.35em] text-zinc-400">公平結算公式</p>
+              <p className="text-[11px] text-zinc-300 leading-relaxed">
+                平民分數 = 抓臥底率 × 100 − 誤殺懲罰 × 35；臥底分數 = 臥底存活率 × 100
+              </p>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="px-6 pb-6 flex gap-3">
+            <button
+              onClick={() => setShowForceEndConfirm(false)}
+              className="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 text-white py-3 rounded-lg font-black uppercase tracking-[0.2em] text-xs transition-all active:scale-95"
+            >
+              取消
+            </button>
+            <button
+              onClick={handleForceEndGame}
+              className="flex-1 bg-amber-600 hover:bg-amber-500 text-black py-3 rounded-lg font-black uppercase tracking-[0.2em] text-xs transition-all shadow-lg active:scale-95"
+            >
+              確認結算
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (isGameOver) {
     return (
       <div className="glass p-10 rounded-lg text-center space-y-12 animate-in fade-in zoom-in duration-1000 max-w-2xl mx-auto border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.5)] relative overflow-hidden">
@@ -336,6 +489,27 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
            </div>
         </div>
 
+        <div className="bg-black/70 p-6 rounded-lg border border-white/10 relative z-10 text-left">
+          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.6em] mb-4">Force Settlement Detail 中途結算明細</p>
+          <div className="grid md:grid-cols-2 gap-4 text-sm">
+            <div className="space-y-2">
+              <p className="text-cyan-300 font-bold">平民隊</p>
+              <p className="text-zinc-300">抓臥底率：{forceSettlement.deadUndercovers} / {forceSettlement.totalUndercovers}（{(forceSettlement.captureRate * 100).toFixed(1)}%）</p>
+              <p className="text-zinc-300">誤殺懲罰：{(forceSettlement.normalizedCivilianMistake * 100).toFixed(1)}%</p>
+              <p className="text-cyan-400 font-black">平民最終分：{forceSettlement.civilianScore.toFixed(1)}</p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-red-300 font-bold">臥底隊</p>
+              <p className="text-zinc-300">臥底存活率：{(forceSettlement.survivalRate * 100).toFixed(1)}%</p>
+              <p className="text-zinc-300">存活臥底：{forceSettlement.totalUndercovers - forceSettlement.deadUndercovers} / {forceSettlement.totalUndercovers}</p>
+              <p className="text-red-400 font-black">臥底最終分：{forceSettlement.undercoverScore.toFixed(1)}</p>
+            </div>
+          </div>
+          <p className="mt-4 text-zinc-400 text-xs">
+            判定規則：分數較高隊伍獲勝；同分時平民勝（代表已有效抑制臥底擴散）。
+          </p>
+        </div>
+
         {currentPlayer.is_host ? (
           <div className="flex flex-col gap-4 w-full relative z-10">
             <div className="grid grid-cols-2 gap-4">
@@ -372,6 +546,9 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
 
   return (
     <div className="space-y-6 animate-in fade-in duration-1000 max-w-7xl mx-auto px-4 pb-20 relative">
+      {/* Force End Modal */}
+      {showForceEndConfirm && <ForceEndModal />}
+
       <button 
         onClick={handleExitGame}
         className="fixed top-4 right-4 z-[200] flex items-center gap-3 bg-black/60 backdrop-blur-md border border-white/10 hover:border-red-600/50 text-white px-5 py-2.5 rounded-full transition-all shadow-2xl hover:bg-red-950/20 active:scale-95 group"
@@ -424,10 +601,45 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
         </div>
 
         {currentPlayer.is_host && (
-          <button onClick={togglePhase} className="w-full md:w-auto bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-lg font-black uppercase tracking-[0.1em] transition-all hover:scale-105 active:scale-95 text-sm shadow-xl shadow-red-900/40 border border-white/10">
-            {game.status === GameStatus.PLAYING ? '啟動投票階段' : 
-             game.status === GameStatus.DEFENDING ? '重啟投票程序' : '執行淘汰程序'}
-          </button>
+          <div className="w-full md:w-auto flex flex-col gap-2 items-end">
+            {/* 投票進度標示（僅在投票階段顯示） */}
+            {game.status === GameStatus.VOTING && (
+              <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-white/5 border border-white/10 w-full md:w-auto">
+                <div className="text-[11px] font-black uppercase tracking-widest whitespace-nowrap">
+                  <span className="text-green-400">{votedCount}人已投票</span>
+                  <span className="text-zinc-600 mx-2">/</span>
+                  <span className={notVotedCount > 0 ? 'text-zinc-400' : 'text-zinc-600'}>{notVotedCount}人未投票</span>
+                </div>
+                {/* 進度條 */}
+                <div className="w-20 h-1.5 bg-white/10 rounded-full overflow-hidden ml-1">
+                  <div 
+                    className="h-full bg-green-500 rounded-full transition-all duration-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"
+                    style={{ width: eligibleVoters.length > 0 ? `${(votedCount / eligibleVoters.length) * 100}%` : '0%' }}
+                  ></div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              {/* 強制結算按鈕（主持人專屬，非遊戲結束時顯示） */}
+              <button
+                onClick={() => setShowForceEndConfirm(true)}
+                className="flex items-center gap-2 bg-amber-600/10 hover:bg-amber-600/25 border border-amber-600/40 hover:border-amber-500/70 text-amber-400 hover:text-amber-300 px-4 py-2.5 rounded-lg font-black uppercase tracking-[0.1em] transition-all text-xs shadow-lg active:scale-95 shrink-0"
+                title="強制結算目前局面"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>強制結束並結算</span>
+              </button>
+
+              {/* 主階段按鈕 */}
+              <button onClick={togglePhase} className="flex-1 md:flex-none bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-lg font-black uppercase tracking-[0.1em] transition-all hover:scale-105 active:scale-95 text-sm shadow-xl shadow-red-900/40 border border-white/10">
+                {game.status === GameStatus.PLAYING ? '啟動投票階段' : 
+                 game.status === GameStatus.DEFENDING ? '重啟投票程序' : '執行淘汰程序'}
+              </button>
+            </div>
+          </div>
         )}
       </div>
 
@@ -564,8 +776,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                   )}
                   {!p.is_alive && (
                     <div className="absolute inset-0 z-30 pointer-events-none">
-
-                      {/* 淘汰章 */}
                       <div className={`absolute left-1/2 -translate-x-1/2 transition-all duration-700 ease-out ${isJustEliminated ? 'top-24 scale-[2] opacity-100' : 'top-[47px] scale-100 opacity-95'}`}>
                         <div className="bg-red-800/90 text-white/95 px-4 py-1.5 text-[16px] font-black uppercase tracking-[0.25em]
                           rotate-[-12deg]
@@ -576,9 +786,6 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                       </div>
                     </div>
                   )}
-
-
-
                 </div>
               );
             })}
@@ -602,35 +809,26 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                   className="absolute inset-0 backface-hidden bg-[#0a0a0a] rounded-3xl border border-white/10 shadow-2xl overflow-hidden flex flex-col items-center justify-center p-6"
                   style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
                 >
-                    {/* Background Pattern */}
                     <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '24px 24px'}}></div>
                     <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
-                    
-                    {/* Border Decoration */}
                     <div className="absolute inset-3 border border-white/5 rounded-2xl opacity-50"></div>
                     <div className="absolute inset-4 border border-white/5 rounded-xl opacity-30"></div>
-
-                    {/* Confidential */}
                     <div className="absolute top-16 text-center space-y-2 z-10 w-full">
                       <h3 className="mx-auto text-3xl font-black text-white/40 tracking-[0.1em] uppercase">
                         Confidential
                       </h3>
                       <div className="h-[1px] w-24 bg-white/10 mx-auto"></div>
                     </div>
-
-                    {/* Stamp */}
                     <div className="relative transform -rotate-12 opacity-90 scale-110">
                       <div className="absolute inset-0 bg-amber-700/25 blur-2xl rounded-full animate-pulse"></div>
                       <SecretStampIcon className="w-60 h-60 text-amber-700 drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]" />
                     </div>
-
                     <div className="absolute bottom-12 w-full text-center space-y-2 z-10">
                         <div className="text-[8px] text-white/30 font-black tracking-[0.4em] uppercase space-y-1">
                           <p>DO NOT SHARE THIS INFORMATION</p>
                           <p>DESTROY AFTER READING</p>
                         </div>
                     </div>
-
                 </div>
 
                 {/* FRONT FACE (Info) - Visible when flipped (180deg) */}
@@ -643,30 +841,22 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                   }}
                 >
                    <div className={`absolute top-0 inset-x-0 h-1.5 ${cardColor === 'red' ? 'bg-red-600 text-red-400' : cardColor === 'cyan' ? 'bg-cyan-400 text-cyan-300' : 'bg-amber-500 text-amber-300'} shadow-[0_0_6px_rgba(255,255,255,0.7),0_0_24px_currentColor]`}></div>
-                   
-                    {/* Access Card */}
                     <div className="pt-10 text-center relative z-10 px-6">
                       <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/5 mb-4 mx-auto">
                         <span className={`w-1.5 h-1.5 rounded-full ${cardColor === 'red' ? 'bg-red-500' : cardColor === 'cyan' ? 'bg-cyan-400' : 'bg-amber-500'} animate-pulse`}></span>
                         <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em]">Access Card</p>
                       </div>
                     </div>
-
-                    {/* Player */}
                     <div className="mt-10 pb-6 text-center relative z-10 px-6">
                       <p className="text-[9px] text-zinc-500 font-black uppercase tracking-[0.4em] mb-1">PLAYER</p>
                       <h2 className="text-3xl font-black text-white uppercase tracking-wider drop-shadow-lg">{currentPlayer.name}</h2>
                     </div>
-
-                   {/* KeyWord */}
                    <div className="flex-1 py-6 flex flex-col items-center justify-center relative px-6">
                     <p className="text-[9px] text-zinc-500 font-black uppercase tracking-[0.5em] mb-3">Code Word</p>
                       <div className={`w-full max-w-[280px] px-6 py-6 rounded-xl border text-center shadow-inner ${cardColor === 'red' ? 'border-red-500/40 bg-red-500/5 shadow-red-900/30' : cardColor === 'cyan' ? 'border-cyan-400/40 bg-cyan-400/5 shadow-cyan-900/30' : 'border-amber-400/40 bg-amber-400/5 shadow-amber-900/30'}`}>
                       <p className={`font-black break-words leading-tight drop-shadow-xl ${getWordStyle(cardWord)} ${cardColor === 'red' ? 'text-red-500' : cardColor === 'cyan' ? 'text-cyan-400' : 'text-amber-500'}`}>{cardWord}</p>
                       </div>
                    </div>
-
-                   {/* Bottom Role */}
                    <div className="pb-12 pt-4 text-center relative z-10 px-8">
                     <p className="mb-2 text-[9px] text-zinc-500 font-black uppercase tracking-[0.4em]">MISSION ROLE</p>
                       <div className={`w-full h-[0.5px] mb-4 opacity-50 ${cardColor === 'red' ? 'bg-red-400/30' : cardColor === 'cyan' ? 'bg-cyan-300/30' : 'bg-amber-300/30'}`}></div>
