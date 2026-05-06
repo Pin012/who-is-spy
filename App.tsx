@@ -8,7 +8,14 @@ import ModeSelectionView from './views/ModeSelectionView';
 
 const STORAGE_KEYS = {
   PLAYER_ID: 'spy_player_id',
-  GAME_ID: 'spy_game_id'
+  GAME_ID: 'spy_game_id',
+  A2HS_DISMISSED_UNTIL: 'a2hs_dismissed_until',
+  A2HS_NEVER_SHOW: 'a2hs_never_show'
+};
+
+type DeferredInstallPrompt = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 };
 
 const App: React.FC = () => {
@@ -20,6 +27,9 @@ const App: React.FC = () => {
   
   const [isSelectingMode, setIsSelectingMode] = useState(false);
   const [playerName, setPlayerName] = useState('');
+  const [showA2HS, setShowA2HS] = useState(false);
+  const [a2hsPlatform, setA2hsPlatform] = useState<'ios' | 'android' | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<DeferredInstallPrompt | null>(null);
 
   const currentPlayer = useMemo(() => 
     players.find(p => p.id === myPlayerId) || null
@@ -134,6 +144,65 @@ const App: React.FC = () => {
       }
     }
   }, [players, currentGame]);
+
+  useEffect(() => {
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    if (!isMobile) return;
+
+    const ua = window.navigator.userAgent.toLowerCase();
+    const isIos = /iphone|ipad|ipod/.test(ua);
+    const isAndroid = /android/.test(ua);
+    if (!isIos && !isAndroid) return;
+
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+    if (isStandalone) return;
+
+    const neverShow = localStorage.getItem(STORAGE_KEYS.A2HS_NEVER_SHOW) === '1';
+    if (neverShow) return;
+
+    const dismissedUntil = Number(localStorage.getItem(STORAGE_KEYS.A2HS_DISMISSED_UNTIL) || '0');
+    if (Date.now() < dismissedUntil) return;
+
+    setA2hsPlatform(isIos ? 'ios' : 'android');
+
+    const timer = window.setTimeout(() => {
+      setShowA2HS(true);
+    }, 10000);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const onBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setDeferredPrompt(event as DeferredInstallPrompt);
+    };
+
+    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt);
+  }, []);
+
+  const dismissA2HS = (days: number) => {
+    const dismissedUntil = Date.now() + days * 24 * 60 * 60 * 1000;
+    localStorage.setItem(STORAGE_KEYS.A2HS_DISMISSED_UNTIL, String(dismissedUntil));
+    setShowA2HS(false);
+  };
+
+  const neverShowA2HS = () => {
+    localStorage.setItem(STORAGE_KEYS.A2HS_NEVER_SHOW, '1');
+    setShowA2HS(false);
+  };
+
+  const triggerAndroidInstall = async () => {
+    if (!deferredPrompt) return;
+    await deferredPrompt.prompt();
+    const choiceResult = await deferredPrompt.userChoice;
+    if (choiceResult.outcome === 'accepted') {
+      neverShowA2HS();
+      return;
+    }
+    dismissA2HS(7);
+  };
 
   const handleExitGame = () => {
     localStorage.removeItem(STORAGE_KEYS.PLAYER_ID);
@@ -263,6 +332,41 @@ const App: React.FC = () => {
            <div className="absolute bottom-[10%] right-[5%] w-[35rem] h-[35rem] bg-blue-600/5 blur-[120px] rounded-full animate-pulse [animation-delay:2s]"></div>
         </div>
         <div className="relative z-10">{renderContent()}</div>
+        {showA2HS && a2hsPlatform && (
+          <div className="fixed bottom-4 left-4 right-4 z-40 md:hidden">
+            <div className="rounded-2xl border border-red-500/30 bg-[#121212]/95 backdrop-blur p-4 shadow-2xl">
+              <p className="text-[10px] tracking-[0.3em] uppercase text-red-400 font-bold mb-2">快捷啟動</p>
+              {a2hsPlatform === 'ios' ? (
+                <>
+                  <p className="text-sm text-zinc-100 font-semibold">將遊戲加入主畫面</p>
+                  <p className="text-xs text-zinc-300 mt-1">在 Safari 點「分享」→「加入主畫面」，下次一鍵開局。</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-zinc-100 font-semibold">安裝到主畫面</p>
+                  <p className="text-xs text-zinc-300 mt-1">加入後可像 App 一樣快速開啟，不用再找網址。</p>
+                </>
+              )}
+              <div className="mt-3 flex gap-2">
+                {a2hsPlatform === 'android' ? (
+                  <button onClick={triggerAndroidInstall} className="flex-1 rounded-lg bg-red-600 text-white text-sm font-bold py-2">
+                    立即加入
+                  </button>
+                ) : (
+                  <button onClick={() => dismissA2HS(7)} className="flex-1 rounded-lg bg-red-600 text-white text-sm font-bold py-2">
+                    我知道了
+                  </button>
+                )}
+                <button onClick={() => dismissA2HS(7)} className="rounded-lg border border-zinc-600 text-zinc-200 text-sm px-3 py-2">
+                  稍後
+                </button>
+                <button onClick={neverShowA2HS} className="rounded-lg border border-zinc-700 text-zinc-400 text-sm px-3 py-2">
+                  不再提示
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
