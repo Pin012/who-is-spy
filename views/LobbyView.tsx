@@ -28,6 +28,7 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer, onE
     : players.filter(p => !p.is_host);
   
   const host = players.find(p => p.is_host);
+  const joinUrl = `${window.location.origin}${window.location.pathname}?code=${game.room_code}`;
   const participantCount = agents.length;
   const minRequired = 3;
 
@@ -144,9 +145,19 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer, onE
           </div>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
-          <div onClick={copyCode} className="flex-1 md:flex-none cursor-pointer bg-red-600/10 border border-red-500/20 px-4 py-3 rounded-lg text-center group transition-all hover:bg-red-600/20">
+          <div className="flex-1 md:flex-none bg-red-600/10 border border-red-500/20 px-4 py-3 rounded-lg text-center group transition-all hover:bg-red-600/20 space-y-2">
+            <div onClick={copyCode} className="cursor-pointer">
             <p className="text-[8px] text-red-500 font-black uppercase tracking-widest">Access Code</p>
             <p className="text-xl font-black text-red-500 group-hover:scale-105 transition-transform">{game.room_code}</p>
+            </div>
+            <div className="bg-white p-2 rounded-md inline-block">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(joinUrl)}`}
+                alt="Join room QR code"
+                className="w-24 h-24 md:w-28 md:h-28"
+              />
+            </div>
+            <p className="text-[8px] text-zinc-400 font-bold">掃描即可帶入房間代碼</p>
           </div>
           <button onClick={handleLeave} className="bg-zinc-900 border border-white/5 px-4 py-3 rounded-lg text-[10px] font-black text-zinc-500 uppercase tracking-widest hover:text-white hover:bg-red-900/40 transition-all">
             Exit

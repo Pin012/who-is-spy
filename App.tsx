@@ -30,12 +30,21 @@ const App: React.FC = () => {
   const [showA2HS, setShowA2HS] = useState(false);
   const [a2hsPlatform, setA2hsPlatform] = useState<'ios' | 'android' | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<DeferredInstallPrompt | null>(null);
+  const [pendingJoinCode, setPendingJoinCode] = useState('');
 
   const currentPlayer = useMemo(() => 
     players.find(p => p.id === myPlayerId) || null
   , [players, myPlayerId]);
 
   // 1. 初始化時嘗試恢復連線
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const codeFromUrl = params.get('code');
+    if (codeFromUrl) {
+      setPendingJoinCode(codeFromUrl.toUpperCase());
+    }
+  }, []);
+
   useEffect(() => {
     const recoverSession = async () => {
       if (!supabase) return setIsRecovering(false);
@@ -248,6 +257,9 @@ const App: React.FC = () => {
 
       setCurrentGame(gameData);
       setMyPlayerId(playerData.id);
+      if (window.location.search.includes('code=')) {
+        window.history.replaceState({}, '', window.location.pathname);
+      }
     } catch (err) {
       alert(err instanceof Error ? err.message : "加入遊戲失敗");
     } finally {
@@ -320,6 +332,7 @@ const App: React.FC = () => {
         loading={loading}
         playerName={playerName}
         setPlayerName={setPlayerName}
+        initialCode={pendingJoinCode}
       />
     );
   };

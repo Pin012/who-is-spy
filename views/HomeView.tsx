@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface HomeViewProps {
   onCreateClick: () => void;
@@ -7,10 +7,12 @@ interface HomeViewProps {
   loading: boolean;
   playerName: string;
   setPlayerName: (name: string) => void;
+  initialCode?: string;
 }
 
-const HomeView: React.FC<HomeViewProps> = ({ onCreateClick, onJoin, findGame, loading, playerName, setPlayerName }) => {
-  const [code, setCode] = useState('');
+const HomeView: React.FC<HomeViewProps> = ({ onCreateClick, onJoin, findGame, loading, playerName, setPlayerName, initialCode = '' }) => {
+  const [code, setCode] = useState(initialCode.toUpperCase());
+  const autoJoinedRef = useRef(false);
 
   const handleJoin = async () => {
     if (!playerName.trim()) return alert("請輸入你的名字");
@@ -22,6 +24,19 @@ const HomeView: React.FC<HomeViewProps> = ({ onCreateClick, onJoin, findGame, lo
       alert("找不到該任務房間，請檢查代碼是否正確");
     }
   };
+
+  useEffect(() => {
+    if (initialCode) {
+      setCode(initialCode.toUpperCase());
+    }
+  }, [initialCode]);
+
+  useEffect(() => {
+    if (!initialCode || autoJoinedRef.current) return;
+    if (!playerName.trim()) return;
+    autoJoinedRef.current = true;
+    handleJoin();
+  }, [initialCode, playerName]);
 
   return (
     <div className="grid md:grid-cols-2 gap-10 md:gap-12 items-start max-w-5xl mx-auto px-6">
