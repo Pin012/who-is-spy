@@ -677,7 +677,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     value={localMessage}
                     onChange={(e) => setLocalMessage(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSubmitMessage()}
-                    placeholder={game.status === GameStatus.DEFENDING ? "請發表最後的申冤描述..." : "請輸入你的描述...(不超過20字)"}
+                    placeholder={game.status === GameStatus.DEFENDING ? "請發表最後的申冤描述..." : "請輸入你的描述..."}
                     className="flex-1 bg-black/80 border border-white/10 rounded-lg px-5 py-3.5 outline-none text-white font-bold transition-all focus:border-red-600/60 text-base shadow-inner"
                   />
                   <button
