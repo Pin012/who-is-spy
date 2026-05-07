@@ -677,7 +677,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     value={localMessage}
                     onChange={(e) => setLocalMessage(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSubmitMessage()}
-                    placeholder={game.status === GameStatus.DEFENDING ? "請發表最後的申冤描述..." : "請輸入你的描述..."}
+                    placeholder={game.status === GameStatus.DEFENDING ? "請發表最後的申冤描述..." : "請輸入你的描述...(不超過20字)"}
                     className="flex-1 bg-black/80 border border-white/10 rounded-lg px-5 py-3.5 outline-none text-white font-bold transition-all focus:border-red-600/60 text-base shadow-inner"
                   />
                   <button
@@ -795,7 +795,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                   {!p.is_alive && (
                     <div className="absolute inset-0 z-30 pointer-events-none">
                       <div className={`absolute left-1/2 -translate-x-1/2 transition-all duration-700 ease-out ${isJustEliminated ? 'top-24 scale-[1.7] md:scale-[2] opacity-100' : 'top-[47px] scale-100 opacity-95'}`}>
-                        <div className="bg-red-800/90 text-white/95 px-2.5 md:px-4 py-1 md:py-1.5 text-[11px] md:text-[16px] font-black uppercase tracking-[0.2em] md:tracking-[0.25em]
+                        <div className="bg-red-800/90 text-white/95 px-2.5 md:px-4 py-1 md:py-1.5 text-[10px] md:text-[16px] font-black uppercase tracking-[0.2em] md:tracking-[0.25em]
                           rotate-[-12deg]
                           border-2 border-red-700/95
                           shadow-[0_0_15px_rgba(220,38,38,0.3)]">
