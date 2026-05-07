@@ -446,17 +446,17 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
 
   if (isGameOver) {
     return (
-      <div className="glass p-10 rounded-lg text-center space-y-12 animate-in fade-in zoom-in duration-1000 max-w-2xl mx-auto border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.5)] relative overflow-hidden">
+      <div className="glass p-6 md:p-10 rounded-lg text-center space-y-8 md:space-y-12 animate-in fade-in zoom-in duration-1000 max-w-2xl mx-auto border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.5)] relative overflow-hidden">
         <div className="space-y-4 relative z-10">
-          <div className={`inline-block p-8 rounded-full mb-6 border-2 shadow-[0_0_60px_rgba(255,255,255,0.05)] ${isCivilianWin ? 'bg-cyan-500/10 border-cyan-500/30' : 'bg-red-600/10 border-red-600/30'}`}>
-            <span className="text-8xl drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]">{isCivilianWin ? '👮' : '🕵️'}</span>
+          <div className={`inline-block p-6 md:p-8 rounded-full mb-4 md:mb-6 border-2 shadow-[0_0_60px_rgba(255,255,255,0.05)] ${isCivilianWin ? 'bg-cyan-500/10 border-cyan-500/30' : 'bg-red-600/10 border-red-600/30'}`}>
+            <span className="text-6xl md:text-8xl drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]">{isCivilianWin ? '👮' : '🕵️'}</span>
           </div>
           <div className="space-y-2">
-             <p className="text-[11px] font-black text-zinc-400 uppercase tracking-[0.8em] animate-pulse">Operations Concluded</p>
-             <h2 className={`text-7xl font-black tracking-tighter uppercase italic drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] ${isCivilianWin ? 'text-cyan-400' : 'text-red-600'}`}>
+             <p className="text-[9px] md:text-[11px] font-black text-zinc-400 uppercase tracking-[0.5em] md:tracking-[0.8em] animate-pulse">Operations Concluded</p>
+             <h2 className={`text-5xl md:text-7xl font-black tracking-tight md:tracking-tighter uppercase italic drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] break-words ${isCivilianWin ? 'text-cyan-400' : 'text-red-600'}`}>
                {isCivilianWin ? 'Civilian Victory' : 'Undercover Victory'}
              </h2>
-             <div className={`text-lg font-black uppercase tracking-[0.2em] mt-2 ${isCivilianWin ? 'text-cyan-600' : 'text-red-700'}`}>
+             <div className={`text-base md:text-lg font-black uppercase tracking-[0.15em] md:tracking-[0.2em] mt-2 ${isCivilianWin ? 'text-cyan-600' : 'text-red-700'}`}>
                {isCivilianWin ? '平民獲得最終勝利' : '臥底獲得最終勝利'}
              </div>
           </div>
@@ -794,8 +794,8 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                   )}
                   {!p.is_alive && (
                     <div className="absolute inset-0 z-30 pointer-events-none">
-                      <div className={`absolute left-1/2 -translate-x-1/2 transition-all duration-700 ease-out ${isJustEliminated ? 'top-24 scale-[2] opacity-100' : 'top-[47px] scale-100 opacity-95'}`}>
-                        <div className="bg-red-800/90 text-white/95 px-4 py-1.5 text-[16px] font-black uppercase tracking-[0.25em]
+                      <div className={`absolute left-1/2 -translate-x-1/2 transition-all duration-700 ease-out ${isJustEliminated ? 'top-24 scale-[1.7] md:scale-[2] opacity-100' : 'top-[47px] scale-100 opacity-95'}`}>
+                        <div className="bg-red-800/90 text-white/95 px-2.5 md:px-4 py-1 md:py-1.5 text-[12px] md:text-[16px] font-black uppercase tracking-[0.2em] md:tracking-[0.25em]
                           rotate-[-12deg]
                           border-2 border-red-700/95
                           shadow-[0_0_15px_rgba(220,38,38,0.3)]">
