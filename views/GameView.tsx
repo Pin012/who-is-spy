@@ -707,7 +707,7 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                 <div 
                   key={p.id} 
                   onClick={() => game.status === GameStatus.VOTING && p.is_alive && !isSpectator && handleVote(p.id)}
-                  className={`group relative overflow-hidden p-6 rounded-md border-2 transition-all duration-300 flex flex-col items-center gap-5
+                  className={`group relative overflow-hidden p-3 md:p-6 rounded-md border-2 transition-all duration-300 flex flex-col items-start md:items-center gap-3 md:gap-5
                     ${!p.is_alive ? 'border-zinc-700/60 bg-black/60 cursor-not-allowed' : 
                       isVotedByMe ? 'border-red-600 bg-red-600/15 scale-95 shadow-[0_0_30px_rgba(220,38,38,0.3)]' : 
                       isSuspected ? 'border-amber-600 bg-amber-600/10 shadow-[0_0_40px_rgba(245,158,11,0.2)]' :
@@ -732,23 +732,35 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                     </div>
                   )}
 
-                  <div className={`relative w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all shadow-inner border-2 overflow-hidden
+                  <div className={`relative hidden md:flex w-16 h-16 md:w-20 md:h-20 rounded-full items-center justify-center transition-all shadow-inner border-2 overflow-hidden
                     ${p.id === currentPlayer.id ? 'bg-red-600 text-white border-white/20 shadow-red-900/40' : 
                       isSuspected ? 'bg-amber-600 text-black border-white/20' : 'bg-zinc-900 text-zinc-400 border-white/5'}
                   `}>
                     <AgentIcon />
-                  </div>                  
-                  <div className="text-center w-full space-y-3">
-                    <p className={`font-black text-base md:text-lg leading-tight truncate px-1 uppercase tracking-widest drop-shadow-sm
+                  </div>
+                  <div className="w-full flex items-center gap-2 md:hidden">
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center border overflow-hidden shrink-0
+                      ${p.id === currentPlayer.id ? 'bg-red-600 text-white border-white/20' :
+                        isSuspected ? 'bg-amber-600 text-black border-white/20' : 'bg-zinc-900 text-zinc-400 border-white/10'}
+                    `}>
+                      <AgentIcon className="w-4 h-4" />
+                    </div>
+                    <p className={`font-black text-sm leading-tight truncate uppercase tracking-wide
                       ${!p.is_alive ? 'text-zinc-500 opacity-70' : 'text-white'}`}>
                       {p.name}
                     </p>
-                    <div className="h-24 flex items-center justify-center w-full relative">
+                  </div>
+                  <div className="text-left md:text-center w-full space-y-2 md:space-y-3">
+                    <p className={`hidden md:block font-black text-base md:text-lg leading-tight truncate px-1 uppercase tracking-widest drop-shadow-sm
+                      ${!p.is_alive ? 'text-zinc-500 opacity-70' : 'text-white'}`}>
+                      {p.name}
+                    </p>
+                    <div className="min-h-[52px] md:h-24 flex items-center justify-start md:justify-center w-full relative">
                       {p.is_alive ? (
                         hasSent ? (
                           canSeeOthersMessages ? (
                             <div className="bg-amber-400/5 border border-amber-400/40 rounded-xl px-4 py-3 w-full shadow-lg shadow-black/40 flex items-center justify-center min-h-[60px] transition-colors text-amber-400">
-                               <p className="text-sm md:text-base font-bold leading-tight break-words text-center">
+                               <p className="text-xs sm:text-sm md:text-base font-bold leading-tight break-words text-center">
                                  {p.message}
                                </p>
                             </div>
