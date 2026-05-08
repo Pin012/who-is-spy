@@ -175,21 +175,13 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer, onE
             Overseer Control
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="flex gap-2">
-              <input 
+            <input 
                 value={manualCivilian}
                 onChange={e => setManualCivilian(e.target.value)}
                 placeholder="平民詞：例如 自行車"
                 className="w-full bg-black/60 border border-white/5 rounded-lg px-4 py-3 text-sm focus:ring-1 focus:ring-amber-500 outline-none text-white font-bold transition-all placeholder:text-zinc-800"
               />
-              <button
-                onClick={handleGenerateWords}
-                disabled={generatingWords || starting}
-                className="shrink-0 px-3 py-2 rounded-lg text-[10px] font-black tracking-widest uppercase bg-amber-600 hover:bg-amber-500 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-              >
-                {generatingWords ? "生成中" : "AI出題"}
-              </button>
-            </div>
+
             <input 
               value={manualUndercover}
               onChange={e => setManualUndercover(e.target.value)}
@@ -197,6 +189,15 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer, onE
               className="w-full bg-black/60 border border-white/5 rounded-lg px-4 py-3 text-sm focus:ring-1 focus:ring-amber-500 outline-none text-white font-bold transition-all placeholder:text-zinc-800"
             />
           </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleGenerateWords}
+                disabled={generatingWords || starting}
+                className="shrink-0 px-3 py-2 rounded-lg text-[12px] font-black tracking-widest uppercase bg-amber-600 hover:bg-amber-500 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                {generatingWords ? "生成中" : "AI出題"}
+              </button>
+            </div>
         </div>
       )}
 
