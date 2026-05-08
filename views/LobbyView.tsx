@@ -170,11 +170,11 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer, onE
 
       {!game.host_is_player && currentPlayer.is_host && (
         <div className="bg-white/5 border border-white/10 p-5 rounded-xl space-y-4 shadow-inner">
-          <h3 className="text-amber-500 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
-            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>
-            Overseer Control
-          </h3>
-          <div className="flex gap-2">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-amber-500 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
+              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>
+              Overseer Control
+            </h3>
             <button
               onClick={handleGenerateWords}
               disabled={generatingWords || starting}
@@ -198,7 +198,6 @@ const LobbyView: React.FC<LobbyViewProps> = ({ game, players, currentPlayer, onE
               className="w-full bg-black/60 border border-white/5 rounded-lg px-4 py-3 text-sm focus:ring-1 focus:ring-amber-500 outline-none text-white font-bold transition-all placeholder:text-zinc-800"
             />
           </div>
-
         </div>
       )}
 
