@@ -1,6 +1,6 @@
 # 誰是臥底（Who Is Spy）
 
-即時多人線上派對遊戲，採用 React + Vite 前端架構，透過 Supabase 提供房間資料儲存與 Realtime 同步，並整合 Gemini 產生題庫詞對。此專案適合用於朋友聚會、團隊暖場、教學活動中的互動破冰情境。
+即時多人線上派對遊戲，採用 React + Vite 前端架構，透過 Supabase 提供房間資料儲存與 Realtime 同步，並整合 Gemini 產生題庫詞對。此專案適合用於線上會議團隊暖場、 Team Building 的互動破冰情境。
 
 ---
 
