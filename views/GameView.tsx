@@ -118,6 +118,15 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
   const votedCount = eligibleVoters.filter(p => p.voted_for).length;
   const notVotedCount = eligibleVoters.length - votedCount;
 
+  // ── 情報描述統計 ──
+  const eligibleSubmitters = players.filter(p => {
+    if (!p.is_alive || (!game.host_is_player && p.is_host)) return false;
+    if (game.status === GameStatus.DEFENDING) return game.suspect_ids?.includes(p.id) ?? false;
+    return game.status === GameStatus.PLAYING;
+  });
+  const submittedCount = eligibleSubmitters.filter(p => !!p.message?.trim()).length;
+  const notSubmittedCount = eligibleSubmitters.length - submittedCount;
+
   const handleVote = async (targetId: string) => {
     if (!currentPlayer.is_alive || game.status !== GameStatus.VOTING || !supabase || voting) return;
     setVoting(true);
@@ -628,19 +637,33 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
           </div>
         </div>
 
-          {/* 投票進度標示（投票階段全員可見） */}
-          {game.status === GameStatus.VOTING && (
+          {/* 階段進度標示 */}
+          {(game.status === GameStatus.PLAYING || game.status === GameStatus.DEFENDING || game.status === GameStatus.VOTING) && (
             <div className="flex items-center gap-3 w-full md:w-auto">
               <div className="text-[11px] font-black uppercase tracking-widest whitespace-nowrap">
-                <span className="text-amber-400">{votedCount}人已投票</span>
-                <span className="text-zinc-600 mx-2">/</span>
-                <span className={notVotedCount > 0 ? 'text-zinc-400' : 'text-zinc-600'}>{notVotedCount}人未投票</span>
+                {game.status === GameStatus.VOTING ? (
+                  <>
+                    <span className="text-amber-400">{votedCount}人已投票</span>
+                    <span className="text-zinc-600 mx-2">/</span>
+                    <span className={notVotedCount > 0 ? 'text-zinc-400' : 'text-zinc-600'}>{notVotedCount}人未投票</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-emerald-400">{submittedCount}人已送出</span>
+                    <span className="text-zinc-600 mx-2">/</span>
+                    <span className={notSubmittedCount > 0 ? 'text-zinc-400' : 'text-zinc-600'}>{notSubmittedCount}人未送出</span>
+                  </>
+                )}
               </div>
               {/* 進度條 */}
               <div className="w-20 h-1.5 bg-white/10 rounded-full overflow-hidden ml-1">
                 <div 
-                  className="h-full bg-amber-400 rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(251,191,36,0.9)]"
-                  style={{ width: eligibleVoters.length > 0 ? `${(votedCount / eligibleVoters.length) * 100}%` : '0%' }}
+                  className={`h-full rounded-full transition-all duration-500 ${game.status === GameStatus.VOTING ? 'bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.9)]' : 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]'}`}
+                  style={{
+                    width: game.status === GameStatus.VOTING
+                      ? (eligibleVoters.length > 0 ? `${(votedCount / eligibleVoters.length) * 100}%` : '0%')
+                      : (eligibleSubmitters.length > 0 ? `${(submittedCount / eligibleSubmitters.length) * 100}%` : '0%')
+                  }}
                 ></div>
               </div>
             </div>
