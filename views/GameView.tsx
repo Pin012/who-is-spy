@@ -649,9 +649,9 @@ const GameView: React.FC<GameViewProps> = ({ game, players, currentPlayer, onExi
                   </>
                 ) : (
                   <>
-                    <span className="text-emerald-400">{submittedCount}人已送出</span>
+                    <span className="text-amber-300">{submittedCount}人已發送</span>
                     <span className="text-zinc-600 mx-2">/</span>
-                    <span className={notSubmittedCount > 0 ? 'text-zinc-400' : 'text-zinc-600'}>{notSubmittedCount}人未送出</span>
+                    <span className={notSubmittedCount > 0 ? 'text-zinc-400' : 'text-zinc-600'}>{notSubmittedCount}人未發送</span>
                   </>
                 )}
               </div>
